@@ -1652,7 +1652,7 @@ nh5aget_info_c (hid_t_f *loc_id, int_f *corder_valid, int_f *corder,
 
     *corder = (int_f)ainfo.corder;
     *cset = (int_f)ainfo.cset;
-    *data_size = (hsize_t)ainfo.data_size;
+    *data_size = (hsize_t_f)ainfo.data_size;
 
 done:
     return ret_value;
@@ -1728,7 +1728,7 @@ nh5aget_info_by_idx_c (hid_t_f *loc_id, _fcd obj_name, size_t_f *obj_namelen,
         *corder_valid = 1;
     *corder = (int_f)ainfo.corder;
     *cset = (int_f)ainfo.cset;
-    *data_size = (hsize_t)ainfo.data_size;
+    *data_size = (hsize_t_f)ainfo.data_size;
 
 done:
     if(c_obj_name)
@@ -1797,7 +1797,7 @@ nh5aget_info_by_name_c (hid_t_f *loc_id, _fcd obj_name, size_t_f *obj_namelen,
         *corder_valid = 1;
     *corder = (int_f)ainfo.corder;
     *cset = (int_f)ainfo.cset;
-    *data_size = (hsize_t)ainfo.data_size;
+    *data_size = (hsize_t_f)ainfo.data_size;
 
 done:
     if(c_obj_name)
@@ -2081,25 +2081,25 @@ done:
 }
 /****if* H5Af/h5awrite_f_c
  * NAME
- *        h5awrite_f_c
+ *  h5awrite_f_c
  * PURPOSE
- *     Call H5Awrite to write a dataset
+ *  Call H5Awrite to write a dataset
  * INPUTS
- *      attr_id - Identifier of an attribute to write.
- *              mem_type_id - Identifier of the attribute datatype (in memory).
- *              buf      - data pointer buffer
+ *  attr_id     - Identifier of an attribute to write.
+ *  mem_type_id - Identifier of the attribute datatype (in memory).
+ *  buf         - data pointer buffer
  * RETURNS
- *     0 on success, -1 on failure
+ *  0 on success, -1 on failure
  * AUTHOR
  *  M. Scot Breitenfeld
- *              June 11, 2008
+ *  June 11, 2008
  * HISTORY
  *
  *
  * SOURCE
 */
 int_f
-nh5awrite_f_c (hid_t_f *attr_id, hid_t_f *mem_type_id, void *buf)
+h5awrite_f_c (hid_t_f *attr_id, hid_t_f *mem_type_id, void *buf)
 /******/
 {
   int ret_value = -1;
@@ -2114,25 +2114,25 @@ nh5awrite_f_c (hid_t_f *attr_id, hid_t_f *mem_type_id, void *buf)
 
 /****if* H5Af/h5aread_f_c
  * NAME
- *        h5aread_f_c
+ *  h5aread_f_c
  * PURPOSE
- *     Call H5Awrite to write a dataset
+ *  Call H5Awrite to write a dataset
  * INPUTS
- *      attr_id - Identifier of an attribute to write.
- *              mem_type_id - Identifier of the attribute datatype (in memory).
- *              buf      - data pointer buffer
+ *  attr_id     - Identifier of an attribute to write.
+ *  mem_type_id - Identifier of the attribute datatype (in memory).
+ *  buf         - data pointer buffer
  * RETURNS
- *     0 on success, -1 on failure
+ *  0 on success, -1 on failure
  * AUTHOR
  *  M. Scot Breitenfeld
- *              June 11, 2008
+ *  June 11, 2008
  * HISTORY
  *
  *
  * SOURCE
 */
 int_f
-nh5aread_f_c (hid_t_f *attr_id, hid_t_f *mem_type_id, void *buf)
+h5aread_f_c (hid_t_f *attr_id, hid_t_f *mem_type_id, void *buf)
 /******/
 {
   int ret_value = -1;

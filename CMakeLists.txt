@@ -1,4 +1,4 @@
-cmake_minimum_required (VERSION 2.8.11)
+cmake_minimum_required (VERSION 3.1.0)
 PROJECT (HDF5 C CXX)
 
 #-----------------------------------------------------------------------------
@@ -145,7 +145,7 @@ set (HDF5_CPP_TST_DIR        ${HDF5_SOURCE_DIR}/c++/test)
 set (HDF5_HL_SRC_DIR         ${HDF5_SOURCE_DIR}/hl)
 set (HDF5_HL_CPP_SRC_DIR     ${HDF5_SOURCE_DIR}/hl/c++)
 set (HDF5_TOOLS_SRC_DIR      ${HDF5_SOURCE_DIR}/tools)
-set (HDF5_PERFORM_SRC_DIR    ${HDF5_SOURCE_DIR}/perform)
+set (HDF5_PERFORM_SRC_DIR    ${HDF5_SOURCE_DIR}/tools/perform)
 set (HDF5_F90_SRC_DIR        ${HDF5_SOURCE_DIR}/fortran)
 
 if (NOT HDF5_INSTALL_BIN_DIR)
@@ -283,8 +283,8 @@ if (BUILD_SHARED_LIBS)
 else (BUILD_SHARED_LIBS)
   set (H5_BUILT_AS_STATIC_LIB 1)
   set (H5_ENABLE_STATIC_LIB YES)
-  set (CMAKE_POSITION_INDEPENDENT_CODE ON)
 endif (BUILD_SHARED_LIBS)
+set (CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 #-----------------------------------------------------------------------------
 # Option to Build Static executables
@@ -369,10 +369,11 @@ endif (MAKE_SYSTEM)
 #-----------------------------------------------------------------------------
 # Add some definitions for Debug Builds
 #-----------------------------------------------------------------------------
+option (HDF5_ENABLE_TRACE "Enable API tracing capability" OFF)
+mark_as_advanced (HDF5_ENABLE_TRACE)
 if (CMAKE_BUILD_TYPE MATCHES Debug)
   add_definitions (-DDEBUG)
   # Enable tracing of the API
-  option (HDF5_ENABLE_TRACE "Enable API tracing capability" ON)
   if (HDF5_ENABLE_TRACE)
     add_definitions (-DH5_DEBUG_API )
   endif (HDF5_ENABLE_TRACE)
@@ -381,14 +382,13 @@ if (CMAKE_BUILD_TYPE MATCHES Debug)
   if (HDF5_ENABLE_INSTRUMENT)
     set (H5_HAVE_INSTRUMENTED_LIBRARY 1)
   endif (HDF5_ENABLE_INSTRUMENT)
-  mark_as_advanced (HDF5_Enable_Instrument)
+  mark_as_advanced (HDF5_ENABLE_INSTRUMENT)
   #-- NMake Makefiles will overwhelm the console with warnings if -Wall is used.
   if (NOT WIN32)
     add_definitions (-Wall)
   endif (NOT WIN32)
 else (CMAKE_BUILD_TYPE MATCHES Debug)
   add_definitions (-DNDEBUG)
-  option (HDF5_ENABLE_TRACE "Enable API tracing capability" OFF)
   if (HDF5_ENABLE_TRACE)
     add_definitions (-DH5_DEBUG_API )
   endif (HDF5_ENABLE_TRACE)
@@ -675,6 +675,9 @@ endif (HDF5_USE_16_API_DEFAULT)
 #-----------------------------------------------------------------------------
 include (UserMacros.cmake)
 
+#-----------------------------------------------------------------------------
+# Include filter (zlib, szip, etc.) macros
+#-----------------------------------------------------------------------------
 include (CMakeFilters.cmake)
 
 #-----------------------------------------------------------------------------
@@ -744,7 +747,7 @@ endif (HDF5_ALLOW_EXTERNAL_SUPPORT MATCHES "SVN" OR HDF5_ALLOW_EXTERNAL_SUPPORT 
 #-----------------------------------------------------------------------------
 # Dashboard and Testing Settings
 #-----------------------------------------------------------------------------
-option (BUILD_TESTING "Build HDF5 Unit Testing" OFF)
+option (BUILD_TESTING "Build HDF5 Unit Testing" ON)
 if (BUILD_TESTING)
   set (DART_TESTING_TIMEOUT 1200
       CACHE INTEGER
@@ -757,9 +760,6 @@ if (BUILD_TESTING)
       add_subdirectory (${HDF5_SOURCE_DIR}/tools/lib ${PROJECT_BINARY_DIR}/tools/lib)
       add_subdirectory (${HDF5_SOURCE_DIR}/test      ${PROJECT_BINARY_DIR}/test)
     endif (EXISTS "${HDF5_SOURCE_DIR}/test" AND IS_DIRECTORY "${HDF5_SOURCE_DIR}/test")
-    if (EXISTS "${HDF5_SOURCE_DIR}/perform" AND IS_DIRECTORY "${HDF5_SOURCE_DIR}/perform")
-      add_subdirectory (${HDF5_SOURCE_DIR}/perform   ${PROJECT_BINARY_DIR}/perform)
-    endif (EXISTS "${HDF5_SOURCE_DIR}/perform" AND IS_DIRECTORY "${HDF5_SOURCE_DIR}/perform")
     if (H5_HAVE_PARALLEL)
       if (EXISTS "${HDF5_SOURCE_DIR}/testpar" AND IS_DIRECTORY "${HDF5_SOURCE_DIR}/testpar")
         add_subdirectory (${HDF5_SOURCE_DIR}/testpar ${PROJECT_BINARY_DIR}/testpar)
@@ -779,6 +779,27 @@ if (BUILD_TESTING)
 endif (BUILD_TESTING)
 
 #-----------------------------------------------------------------------------
+# Option to build examples
+#-----------------------------------------------------------------------------
+if (EXISTS "${HDF5_SOURCE_DIR}/examples" AND IS_DIRECTORY "${HDF5_SOURCE_DIR}/examples")
+  option (HDF5_BUILD_EXAMPLES  "Build HDF5 Library Examples" ON)
+  if (HDF5_BUILD_EXAMPLES)
+    add_subdirectory (${HDF5_SOURCE_DIR}/examples ${PROJECT_BINARY_DIR}/examples)
+  endif (HDF5_BUILD_EXAMPLES)
+endif (EXISTS "${HDF5_SOURCE_DIR}/examples" AND IS_DIRECTORY "${HDF5_SOURCE_DIR}/examples")
+
+#-----------------------------------------------------------------------------
+# Option to build High Level API's
+#-----------------------------------------------------------------------------
+if (EXISTS "${HDF5_SOURCE_DIR}/hl" AND IS_DIRECTORY "${HDF5_SOURCE_DIR}/hl")
+  option (HDF5_BUILD_HL_LIB  "Build HIGH Level HDF5 Library" ON)
+  if (HDF5_BUILD_HL_LIB)
+    set (H5_INCLUDE_HL 1)
+    add_subdirectory (${HDF5_SOURCE_DIR}/hl ${PROJECT_BINARY_DIR}/hl)
+  endif (HDF5_BUILD_HL_LIB)
+endif (EXISTS "${HDF5_SOURCE_DIR}/hl" AND IS_DIRECTORY "${HDF5_SOURCE_DIR}/hl")
+
+#-----------------------------------------------------------------------------
 # Option to build Fortran bindings/tests/examples
 # Make sure this appears before the CONFIGURE_FILE step
 # so that fortran name mangling is detected before writing H5pubconf.h
@@ -792,7 +813,7 @@ if (EXISTS "${HDF5_SOURCE_DIR}/fortran" AND IS_DIRECTORY "${HDF5_SOURCE_DIR}/for
     if (BUILD_SHARED_LIBS AND APPLE)
       message (FATAL_ERROR " **** Shared FORTRAN libraries are unsupported **** ")
     endif (BUILD_SHARED_LIBS AND APPLE)
-    option (HDF5_ENABLE_F2003 "Enable FORTRAN 2003 Standard" OFF)
+    option (HDF5_ENABLE_F2003 "Enable FORTRAN 2003 Standard" ON)
     include (${HDF_RESOURCES_EXT_DIR}/HDFUseFortran.cmake)
     if (HDF5_ENABLE_F2003)
       if (NOT FORTRAN_HAVE_ISO_C_BINDING)
@@ -811,20 +832,10 @@ if (EXISTS "${HDF5_SOURCE_DIR}/fortran" AND IS_DIRECTORY "${HDF5_SOURCE_DIR}/for
 endif (EXISTS "${HDF5_SOURCE_DIR}/fortran" AND IS_DIRECTORY "${HDF5_SOURCE_DIR}/fortran")
 
 #-----------------------------------------------------------------------------
-# Option to build examples
-#-----------------------------------------------------------------------------
-if (EXISTS "${HDF5_SOURCE_DIR}/examples" AND IS_DIRECTORY "${HDF5_SOURCE_DIR}/examples")
-  option (HDF5_BUILD_EXAMPLES  "Build HDF5 Library Examples" OFF)
-  if (HDF5_BUILD_EXAMPLES)
-    add_subdirectory (${HDF5_SOURCE_DIR}/examples ${PROJECT_BINARY_DIR}/examples)
-  endif (HDF5_BUILD_EXAMPLES)
-endif (EXISTS "${HDF5_SOURCE_DIR}/examples" AND IS_DIRECTORY "${HDF5_SOURCE_DIR}/examples")
-
-#-----------------------------------------------------------------------------
 # Option to build HDF5 C++ Library
 #-----------------------------------------------------------------------------
 if (EXISTS "${HDF5_SOURCE_DIR}/c++" AND IS_DIRECTORY "${HDF5_SOURCE_DIR}/c++")
-  option (HDF5_BUILD_CPP_LIB  "Build HDF5 C++ Library" OFF)
+  option (HDF5_BUILD_CPP_LIB  "Build HDF5 C++ Library" ON)
   if (HDF5_BUILD_CPP_LIB)
     # check for unsupported options
     if (HDF5_ENABLE_PARALLEL)
@@ -834,6 +845,12 @@ if (EXISTS "${HDF5_SOURCE_DIR}/c++" AND IS_DIRECTORY "${HDF5_SOURCE_DIR}/c++")
       set (H5_NO_STD 1)
     endif (CMAKE_NO_STD_NAMESPACE)
     add_subdirectory (${HDF5_SOURCE_DIR}/c++ ${PROJECT_BINARY_DIR}/c++)
+    if (HDF5_BUILD_HL_LIB)
+      if (EXISTS "${HDF5_SOURCE_DIR}/hl/c++" AND IS_DIRECTORY "${HDF5_SOURCE_DIR}/hl/c++")
+        #-- Build the High Level Fortran source codes
+        add_subdirectory (${HDF5_SOURCE_DIR}/hl/c++ ${PROJECT_BINARY_DIR}/hl/c++)
+      endif (EXISTS "${HDF5_SOURCE_DIR}/hl/c++" AND IS_DIRECTORY "${HDF5_SOURCE_DIR}/hl/c++")
+    endif (HDF5_BUILD_HL_LIB)
   endif (HDF5_BUILD_CPP_LIB)
 endif (EXISTS "${HDF5_SOURCE_DIR}/c++" AND IS_DIRECTORY "${HDF5_SOURCE_DIR}/c++")
 
@@ -841,22 +858,11 @@ endif (EXISTS "${HDF5_SOURCE_DIR}/c++" AND IS_DIRECTORY "${HDF5_SOURCE_DIR}/c++"
 # Option to build HDF5 Tools
 #-----------------------------------------------------------------------------
 if (EXISTS "${HDF5_SOURCE_DIR}/tools" AND IS_DIRECTORY "${HDF5_SOURCE_DIR}/tools")
-  option (HDF5_BUILD_TOOLS  "Build HDF5 Tools" OFF)
+  option (HDF5_BUILD_TOOLS  "Build HDF5 Tools" ON)
   if (HDF5_BUILD_TOOLS)
     add_subdirectory (${HDF5_SOURCE_DIR}/tools ${PROJECT_BINARY_DIR}/tools)
   endif (HDF5_BUILD_TOOLS)
 endif (EXISTS "${HDF5_SOURCE_DIR}/tools" AND IS_DIRECTORY "${HDF5_SOURCE_DIR}/tools")
-
-#-----------------------------------------------------------------------------
-# Option to build High Level API's
-#-----------------------------------------------------------------------------
-if (EXISTS "${HDF5_SOURCE_DIR}/hl" AND IS_DIRECTORY "${HDF5_SOURCE_DIR}/hl")
-  option (HDF5_BUILD_HL_LIB  "Build HIGH Level HDF5 Library" OFF)
-  if (HDF5_BUILD_HL_LIB)
-    set (H5_INCLUDE_HL 1)
-    add_subdirectory (${HDF5_SOURCE_DIR}/hl ${PROJECT_BINARY_DIR}/hl)
-  endif (HDF5_BUILD_HL_LIB)
-endif (EXISTS "${HDF5_SOURCE_DIR}/hl" AND IS_DIRECTORY "${HDF5_SOURCE_DIR}/hl")
 
 #-----------------------------------------------------------------------------
 # Check if Fortran's default real is double precision. If it is and HL is 

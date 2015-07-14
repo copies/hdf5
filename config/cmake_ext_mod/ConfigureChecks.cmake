@@ -11,7 +11,9 @@ include (${CMAKE_ROOT}/Modules/CheckTypeSize.cmake)
 include (${CMAKE_ROOT}/Modules/CheckVariableExists.cmake)
 include (${CMAKE_ROOT}/Modules/CheckFortranFunctionExists.cmake)
 include (${CMAKE_ROOT}/Modules/TestBigEndian.cmake)
-include (${CMAKE_ROOT}/Modules/TestForSTDNamespace.cmake)
+if(CMAKE_CXX_COMPILER)
+  include (${CMAKE_ROOT}/Modules/TestForSTDNamespace.cmake)
+endif(CMAKE_CXX_COMPILER)
 
 #-----------------------------------------------------------------------------
 # APPLE/Darwin setup
@@ -90,7 +92,6 @@ if (WINDOWS)
   set (${HDF_PREFIX}_GETTIMEOFDAY_GIVES_TZ 1)
   set (${HDF_PREFIX}_HAVE_TIMEZONE 1)
   set (${HDF_PREFIX}_HAVE_GETTIMEOFDAY 1)
-  set (${HDF_PREFIX}_LONE_COLON 0)
   if (MINGW)
     set (${HDF_PREFIX}_HAVE_WINSOCK2_H 1)
   endif (MINGW)
@@ -180,7 +181,7 @@ MACRO (HDF_FUNCTION_TEST OTHER_TEST)
     else (${OTHER_TEST})
       message (STATUS "Performing Other Test ${OTHER_TEST} - Failed")
       set (${HDF_PREFIX}_${OTHER_TEST} "" CACHE INTERNAL "Other test ${FUNCTION}")
-      file (APPEND ${CMAKE_BINARY_DIR}/CMakeFiles/CMakeError.log
+      file (APPEND ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeError.log
           "Performing Other Test ${OTHER_TEST} failed with the following output:\n"
           "${OUTPUT}\n"
       )
@@ -280,8 +281,19 @@ if (NOT WINDOWS)
   # POSIX feature information can be found in the gcc manual at:
   # http://www.gnu.org/s/libc/manual/html_node/Feature-Test-Macros.html
   set (HDF_EXTRA_C_FLAGS -D_POSIX_C_SOURCE=199506L)
-  set (HDF_EXTRA_FLAGS -D_BSD_SOURCE)
-  
+  # _BSD_SOURCE deprecated in GLIBC >= 2.20
+  TRY_RUN (HAVE_DEFAULT_SOURCE_RUN HAVE_DEFAULT_SOURCE_COMPILE
+        ${CMAKE_BINARY_DIR}
+        ${HDF_RESOURCES_EXT_DIR}/HDFTests.c
+        CMAKE_FLAGS -DCOMPILE_DEFINITIONS:STRING=-DHAVE_DEFAULT_SOURCE
+        OUTPUT_VARIABLE OUTPUT
+    )
+  if (HAVE_DEFAULT_SOURCE_COMPILE AND HAVE_DEFAULT_SOURCE_RUN)
+    set (HDF_EXTRA_FLAGS -D_DEFAULT_SOURCE)
+  else (HAVE_DEFAULT_SOURCE_COMPILE AND HAVE_DEFAULT_SOURCE_RUN)
+    set (HDF_EXTRA_FLAGS -D_BSD_SOURCE)
+  endif (HAVE_DEFAULT_SOURCE_COMPILE AND HAVE_DEFAULT_SOURCE_RUN)
+
   option (HDF_ENABLE_LARGE_FILE "Enable support for large (64-bit) files on Linux." ON)
   if (HDF_ENABLE_LARGE_FILE)
     set (msg "Performing TEST_LFS_WORKS")
@@ -300,14 +312,14 @@ if (NOT WINDOWS)
       else (TEST_LFS_WORKS_RUN  MATCHES 0)
         set (TEST_LFS_WORKS "" CACHE INTERNAL ${msg})
         message (STATUS "${msg}... no")
-        file (APPEND ${CMAKE_BINARY_DIR}/CMakeFiles/CMakeError.log
+        file (APPEND ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeError.log
               "Test TEST_LFS_WORKS Run failed with the following output and exit code:\n ${OUTPUT}\n"
         )
       endif (TEST_LFS_WORKS_RUN  MATCHES 0)
     else (TEST_LFS_WORKS_COMPILE )
       set (TEST_LFS_WORKS "" CACHE INTERNAL ${msg})
       message (STATUS "${msg}... no")
-      file (APPEND ${CMAKE_BINARY_DIR}/CMakeFiles/CMakeError.log
+      file (APPEND ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeError.log
           "Test TEST_LFS_WORKS Compile failed with the following output:\n ${OUTPUT}\n"
       )
     endif (TEST_LFS_WORKS_COMPILE)
@@ -533,7 +545,6 @@ CHECK_SYMBOL_EXISTS (tzname "time.h" ${HDF_PREFIX}_HAVE_DECL_TZNAME)
 #-----------------------------------------------------------------------------
 if (NOT WINDOWS)
   foreach (test
-      LONE_COLON
       HAVE_ATTRIBUTE
       HAVE_C99_FUNC
 #      STDC_HEADERS
@@ -585,17 +596,17 @@ MACRO (HDF_CXX_FUNCTION_TEST OTHER_TEST)
         "${OTHER_TEST_ADD_LIBRARIES}"
         OUTPUT_VARIABLE OUTPUT
     )
-    if ("${OTHER_TEST}" EQUAL 0)
+    if (${OTHER_TEST} EQUAL 0)
       set (${OTHER_TEST} 1 CACHE INTERNAL "CXX test ${FUNCTION}")
       message (STATUS "Performing CXX Test ${OTHER_TEST} - Success")
-    else ("${OTHER_TEST}" EQUAL 0)
+    else (${OTHER_TEST} EQUAL 0)
       message (STATUS "Performing CXX Test ${OTHER_TEST} - Failed")
       set (${OTHER_TEST} "" CACHE INTERNAL "CXX test ${FUNCTION}")
       file (APPEND ${CMAKE_BINARY_DIR}/CMakeFiles/CMakeError.log
           "Performing CXX Test ${OTHER_TEST} failed with the following output:\n"
           "${OUTPUT}\n"
       )
-    endif ("${OTHER_TEST}" EQUAL 0)
+    endif (${OTHER_TEST} EQUAL 0)
   endif ("${OTHER_TEST}" MATCHES "^${OTHER_TEST}$")
 ENDMACRO (HDF_CXX_FUNCTION_TEST)
 

@@ -104,27 +104,6 @@ return 0;
 int main() { return 0; }
 #endif /* STDC_HEADERS */
 
-#ifdef HAVE_TM_ZONE
-
-#include <sys/types.h>
-#ifdef HAVE_SYS_TIME_H
-#include <sys/time.h>
-#endif
-#include <time.h>
-SIMPLE_TEST(struct tm tm; tm.tm_zone);
-
-#endif /* HAVE_TM_ZONE */
-
-#ifdef HAVE_STRUCT_TM_TM_ZONE
-
-#include <sys/types.h>
-#ifdef HAVE_SYS_TIME_H
-#include <sys/time.h>
-#endif
-#include <time.h>
-SIMPLE_TEST(struct tm tm; tm.tm_zone);
-
-#endif /* HAVE_STRUCT_TM_TM_ZONE */
 
 #ifdef HAVE_ATTRIBUTE
 
@@ -344,6 +323,21 @@ int main(void)
        SIMPLE_TEST(posix_memalign());
 #endif
 
+#ifdef HAVE_DEFAULT_SOURCE
+/* check default source */
+#include <features.h>
+
+int
+main(void)
+{
+#ifdef __GLIBC_PREREQ
+  return __GLIBC_PREREQ(2,19);
+#else
+  return 0;
+#endif /* defined(__GLIBC_PREREQ) */
+}
+#endif
+
 #ifdef TEST_LFS_WORKS
 /* Return 0 when LFS is available and 1 otherwise.  */
 #define _LARGEFILE_SOURCE
@@ -392,13 +386,6 @@ int main(void)
  if(tz.tz_minuteswest == 7777 && tz.tz_dsttime == 7)
      return 1;
  else return 0;
-}
-#endif
-
-#ifdef LONE_COLON
-int main(int argc, char * argv) 
-{
-  return 0;
 }
 #endif
 
