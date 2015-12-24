@@ -28,6 +28,7 @@
 #include "H5AbstractDs.h"
 #include "H5FaccProp.h"
 #include "H5FcreatProp.h"
+#include "H5OcreatProp.h"
 #include "H5DcreatProp.h"
 #include "H5CommonFG.h"
 #include "H5DataType.h"
@@ -45,6 +46,7 @@ namespace H5 {
 #endif
 
 class H5_DLLCPP H5Object;  // forward declaration for UserData4Aiterate
+
 //--------------------------------------------------------------------------
 // Function:	Attribute default constructor
 ///\brief	Default constructor: Creates a stub attribute
@@ -610,6 +612,7 @@ void Attribute::p_read_variable_len(const DataType& mem_type, H5std_string& strg
     HDfree(strg_C);
 }
 
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 //--------------------------------------------------------------------------
 // Function:    Attribute::p_setId
 ///\brief       Sets the identifier of this object to a new value.
@@ -634,6 +637,7 @@ void Attribute::p_setId(const hid_t new_id)
    // reset object's id to the given id
    id = new_id;
 }
+#endif // DOXYGEN_SHOULD_SKIP_THIS
 
 //--------------------------------------------------------------------------
 // Function:	Attribute::close

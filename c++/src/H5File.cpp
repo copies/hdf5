@@ -27,6 +27,7 @@
 #include "H5Object.h"
 #include "H5FaccProp.h"
 #include "H5FcreatProp.h"
+#include "H5OcreatProp.h"
 #include "H5DxferProp.h"
 #include "H5DcreatProp.h"
 #include "H5CommonFG.h"
@@ -48,6 +49,8 @@ namespace H5 {
 //--------------------------------------------------------------------------
 // Function	H5File default constructor
 ///\brief	Default constructor: creates a stub H5File object.
+///\par Description
+///		The data member \a id will be initialized to H5I_INVALID_HID.
 // Programmer	Binh-Minh Ribler - 2000
 //--------------------------------------------------------------------------
 H5File::H5File() : H5Location(), CommonFG(), id(H5I_INVALID_HID) {}
@@ -73,14 +76,11 @@ H5File::H5File() : H5Location(), CommonFG(), id(H5I_INVALID_HID) {}
 ///					exists, and fail, otherwise
 ///		\li \c H5F_ACC_RDWR - Open file for read/write, if it already
 ///					exists, and fail, otherwise
-///		\li \c H5F_ACC_DEBUG - print debug information. This flag is
-///			used only by HDF5 library developers; it is neither
-///			tested nor supported for use in applications.
 ///\par
 ///		For info on file creation in the case of an already-open file,
 ///		please refer to the \b Special \b case section in the C layer
 ///		Reference Manual at:
-/// http://www.hdfgroup.org/HDF5/doc/RM/RM_H5F.html#File-Create
+/// https://www.hdfgroup.org/HDF5/doc/RM/RM_H5F.html#File-Create
 // Notes	With a PGI compiler (~2012-2013), the exception thrown by p_get_file
 //		could not be caught in the applications.  Added try block here
 //		to catch then re-throw it. -BMR 2013/03/21
@@ -133,7 +133,7 @@ void H5File::p_get_file(const char* name, unsigned int flags, const FileCreatPro
 {
     // These bits only set for creation, so if any of them are set,
     // create the file.
-    if( flags & (H5F_ACC_EXCL|H5F_ACC_TRUNC|H5F_ACC_DEBUG))
+    if( flags & (H5F_ACC_EXCL|H5F_ACC_TRUNC))
     {
 	hid_t create_plist_id = create_plist.getId();
 	hid_t access_plist_id = access_plist.getId();
@@ -155,8 +155,6 @@ void H5File::p_get_file(const char* name, unsigned int flags, const FileCreatPro
     }
 }
 
-#endif // DOXYGEN_SHOULD_SKIP_THIS
-
 //--------------------------------------------------------------------------
 // Function:	H5File overloaded constructor
 ///\brief	Creates an H5File object using an existing file id.
@@ -175,6 +173,8 @@ H5File::H5File(hid_t existing_id) : H5Location(), CommonFG()
     id = existing_id;
     incRefCount(); // increment number of references to this id
 }
+
+#endif // DOXYGEN_SHOULD_SKIP_THIS
 
 //--------------------------------------------------------------------------
 // Function:	H5File copy constructor
@@ -230,16 +230,15 @@ bool H5File::isHdf5(const H5std_string& name )
 ///\param	name         - IN: Name of the file
 ///\param	flags        - IN: File access flags
 ///\param	access_plist - IN: File access property list.  Default to
-///		FileCreatPropList::DEFAULT
+///		FileAccPropList::DEFAULT
+///\exception	H5::FileIException
 ///\par Description
 ///		Valid values of \a flags include:
-///		H5F_ACC_RDWR:   Open with read/write access. If the file is
-///				currently open for read-only access then it
-///				will be reopened. Absence of this flag
-///				implies read-only access.
-///
-///		H5F_ACC_RDONLY: Open with read only access. - default
-///
+///		\li \c H5F_ACC_RDONLY - Open with read-only.
+///		\li \c H5F_ACC_RDWR - Open with read/write access.
+///		For more information about file access, please refer to the
+///		C layer Reference Manual page at:
+///		https://www.hdfgroup.org/HDF5/doc/RM/RM_H5F.html#File-Open
 // Programmer	Binh-Minh Ribler - Oct, 2005
 //--------------------------------------------------------------------------
 void H5File::openFile(const char* name, unsigned int flags, const FileAccPropList& access_plist)
@@ -267,6 +266,11 @@ void H5File::openFile(const char* name, unsigned int flags, const FileAccPropLis
 ///\param	flags        - IN: File access flags
 ///\param	access_plist - IN: File access property list.  Default to
 ///		FileAccPropList::DEFAULT
+///\exception	H5::FileIException
+///\par Description
+///		Valid values of \a flags include:
+///		\li \c H5F_ACC_RDONLY - Open with read-only.
+///		\li \c H5F_ACC_RDWR - Open with read/write access.
 // Programmer	Binh-Minh Ribler - 2000
 //--------------------------------------------------------------------------
 void H5File::openFile(const H5std_string& name, unsigned int flags, const FileAccPropList& access_plist)
@@ -300,9 +304,9 @@ void H5File::reOpen()
         throw FileIException("H5File::reOpen", close_error.getDetailMsg());
     }
 
-   // call C routine to reopen the file - Note: not sure about this,
+   // call C routine to reopen the file
    // which id to be the parameter when closing?
-   id = H5Freopen( id );
+   id = H5Freopen(id);
    if( id < 0 ) // Raise exception when H5Freopen returns a neg value
       throw FileIException("H5File::reOpen", "H5Freopen failed");
 }
@@ -524,6 +528,23 @@ hsize_t H5File::getFileSize() const
    return (file_size);
 }
 
+//--------------------------------------------------------------------------
+// Function:	H5File::getId
+///\brief	Get the id of this file
+///\return	File identifier
+// Modification:
+//	May 2008 - BMR
+//		Class hierarchy is revised to address bugzilla 1068.  Class
+//		AbstractDS and Attribute are moved out of H5Object.  In
+//		addition, member IdComponent::id is moved into subclasses, and
+//		IdComponent::getId now becomes pure virtual function.
+// Programmer	Binh-Minh Ribler - May, 2008
+//--------------------------------------------------------------------------
+hid_t H5File::getId() const
+{
+   return(id);
+}
+
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 //--------------------------------------------------------------------------
 // Function:	H5File::reopen
@@ -550,37 +571,18 @@ hid_t H5File::getLocId() const
 {
    return( getId() );
 }
-#endif // DOXYGEN_SHOULD_SKIP_THIS
 
 //--------------------------------------------------------------------------
-// Function:    H5File::getId
-///\brief	Get the id of this file
-///\return	File identifier
-// Modification:
-//      May 2008 - BMR
-//              Class hierarchy is revised to address bugzilla 1068.  Class
-//              AbstractDS and Attribute are moved out of H5Object.  In
-//              addition, member IdComponent::id is moved into subclasses, and
-//              IdComponent::getId now becomes pure virtual function.
-// Programmer   Binh-Minh Ribler - May, 2008
-//--------------------------------------------------------------------------
-hid_t H5File::getId() const
-{
-   return(id);
-}
-
-#ifndef DOXYGEN_SHOULD_SKIP_THIS
-//--------------------------------------------------------------------------
-// Function:    H5File::p_setId (protected)
-///\brief       Sets the identifier of this object to a new value.
+// Function:	H5File::p_setId (protected)
+///\brief	Sets the identifier of this object to a new value.
 ///
-///\exception   H5::IdComponentException when the attempt to close the HDF5
-///             object fails
+///\exception	H5::IdComponentException when the attempt to close the HDF5
+///		object fails
 // Description:
-//              The underlaying reference counting in the C library ensures
-//              that the current valid id of this object is properly closed.
-//              Then the object's id is reset to the new id.
-// Programmer   Binh-Minh Ribler - 2000
+//		The underlaying reference counting in the C library ensures
+//		that the current valid id of this object is properly closed.
+//		Then the object's id is reset to the new id.
+// Programmer	Binh-Minh Ribler - 2000
 //--------------------------------------------------------------------------
 void H5File::p_setId(const hid_t new_id)
 {

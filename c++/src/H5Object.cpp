@@ -14,13 +14,13 @@
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 #include <string>
-#include <iostream>
 
 #include "H5Include.h"
 #include "H5Exception.h"
 #include "H5IdComponent.h"
 #include "H5PropList.h"
 #include "H5Object.h"
+#include "H5OcreatProp.h"
 #include "H5DcreatProp.h"
 #include "H5DxferProp.h"
 #include "H5FaccProp.h"
@@ -36,7 +36,6 @@
 
 #ifndef H5_NO_NAMESPACE
 namespace H5 {
-using namespace std;
 #endif
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS

@@ -119,8 +119,8 @@ H5FL_DEFINE(time_t);
  *-------------------------------------------------------------------------
  */
 static void *
-H5O_mtime_new_decode(H5F_t UNUSED *f, hid_t UNUSED dxpl_id, H5O_t UNUSED *open_oh,
-    unsigned UNUSED mesg_flags, unsigned UNUSED *ioflags, const uint8_t *p)
+H5O_mtime_new_decode(H5F_t H5_ATTR_UNUSED *f, hid_t H5_ATTR_UNUSED dxpl_id, H5O_t H5_ATTR_UNUSED *open_oh,
+    unsigned H5_ATTR_UNUSED mesg_flags, unsigned H5_ATTR_UNUSED *ioflags, const uint8_t *p)
 {
     time_t	*mesg;
     uint32_t    tmp_time;       /* Temporary copy of the time */
@@ -172,13 +172,20 @@ done:
  *-------------------------------------------------------------------------
  */
 static void *
-H5O_mtime_decode(H5F_t UNUSED *f, hid_t UNUSED dxpl_id, H5O_t UNUSED *open_oh,
-    unsigned UNUSED mesg_flags, unsigned UNUSED *ioflags, const uint8_t *p)
+H5O_mtime_decode(H5F_t H5_ATTR_UNUSED *f, hid_t H5_ATTR_UNUSED dxpl_id, H5O_t H5_ATTR_UNUSED *open_oh,
+    unsigned H5_ATTR_UNUSED mesg_flags, unsigned H5_ATTR_UNUSED *ioflags, const uint8_t *p)
 {
     time_t	*mesg, the_time;
     int	i;
     struct tm	tm;
-    void        *ret_value;     /* Return value */
+    void        *ret_value = NULL;      /* Return value */
+#if _MSC_VER >= 1900  /* VS 2015 */
+/* In gcc and in Visual Studio prior to VS 2015 'timezone' is a global
+ * variable declared in time.h. That variable was deprecated and in VS 2015
+ * is removed, with _get_timezone replacing it.
+ */
+    long timezone = 0;
+#endif
 
     FUNC_ENTER_NOAPI_NOINIT
 
@@ -219,6 +226,9 @@ H5O_mtime_decode(H5F_t UNUSED *f, hid_t UNUSED dxpl_id, H5O_t UNUSED *open_oh,
     /* BSD-like systems */
     the_time += tm.tm_gmtoff;
 #elif defined(H5_HAVE_TIMEZONE)
+    #if _MSC_VER >= 1900  // VS 2015
+        HDget_timezone(&timezone);
+    #endif
     /* GNU/Linux systems */
     the_time -= timezone - (tm.tm_isdst ? 3600 : 0);
 #else
@@ -259,7 +269,7 @@ done:
  *-------------------------------------------------------------------------
  */
 static herr_t
-H5O_mtime_new_encode(H5F_t UNUSED *f, hbool_t UNUSED disable_shared, uint8_t *p, const void *_mesg)
+H5O_mtime_new_encode(H5F_t H5_ATTR_UNUSED *f, hbool_t H5_ATTR_UNUSED disable_shared, uint8_t *p, const void *_mesg)
 {
     const time_t	*mesg = (const time_t *) _mesg;
 
@@ -301,7 +311,7 @@ H5O_mtime_new_encode(H5F_t UNUSED *f, hbool_t UNUSED disable_shared, uint8_t *p,
  *-------------------------------------------------------------------------
  */
 static herr_t
-H5O_mtime_encode(H5F_t UNUSED *f, hbool_t UNUSED disable_shared, uint8_t *p, const void *_mesg)
+H5O_mtime_encode(H5F_t H5_ATTR_UNUSED *f, hbool_t H5_ATTR_UNUSED disable_shared, uint8_t *p, const void *_mesg)
 {
     const time_t	*mesg = (const time_t *) _mesg;
     struct tm		*tm;
@@ -387,7 +397,7 @@ done:
  *-------------------------------------------------------------------------
  */
 static size_t
-H5O_mtime_new_size(const H5F_t UNUSED * f, hbool_t UNUSED disable_shared, const void UNUSED * mesg)
+H5O_mtime_new_size(const H5F_t H5_ATTR_UNUSED * f, hbool_t H5_ATTR_UNUSED disable_shared, const void H5_ATTR_UNUSED * mesg)
 {
     FUNC_ENTER_NOAPI_NOINIT_NOERR
 
@@ -420,7 +430,7 @@ H5O_mtime_new_size(const H5F_t UNUSED * f, hbool_t UNUSED disable_shared, const 
  *-------------------------------------------------------------------------
  */
 static size_t
-H5O_mtime_size(const H5F_t UNUSED * f, hbool_t UNUSED disable_shared, const void UNUSED * mesg)
+H5O_mtime_size(const H5F_t H5_ATTR_UNUSED * f, hbool_t H5_ATTR_UNUSED disable_shared, const void H5_ATTR_UNUSED * mesg)
 {
     FUNC_ENTER_NOAPI_NOINIT_NOERR
 
@@ -448,7 +458,7 @@ H5O_mtime_size(const H5F_t UNUSED * f, hbool_t UNUSED disable_shared, const void
  *-------------------------------------------------------------------------
  */
 static herr_t
-H5O_mtime_reset(void UNUSED *_mesg)
+H5O_mtime_reset(void H5_ATTR_UNUSED *_mesg)
 {
     FUNC_ENTER_NOAPI_NOINIT_NOERR
 
@@ -499,7 +509,7 @@ H5O_mtime_free(void *mesg)
  *-------------------------------------------------------------------------
  */
 static herr_t
-H5O_mtime_debug(H5F_t UNUSED *f, hid_t UNUSED dxpl_id, const void *_mesg, FILE *stream,
+H5O_mtime_debug(H5F_t H5_ATTR_UNUSED *f, hid_t H5_ATTR_UNUSED dxpl_id, const void *_mesg, FILE *stream,
 		int indent, int fwidth)
 {
     const time_t	*mesg = (const time_t *)_mesg;

@@ -3,16 +3,9 @@
 /* Define if building universal (internal helper macro) */
 #undef AC_APPLE_UNIVERSAL_BUILD
 
-/* Define if your system generates wrong code for log2 routine. */
-#undef BAD_LOG2_CODE_GENERATED
-
 /* Define if the memory buffers being written to disk should be cleared before
    writing. */
 #undef CLEAR_MEMORY
-
-/* Define if your system can handle converting denormalized floating-point
-   values. */
-#undef CONVERT_DENORMAL_FLOAT
 
 /* Define if C++ compiler recognizes offsetof */
 #undef CXX_HAVE_OFFSETOF
@@ -36,10 +29,6 @@
 
 /* As FC_FUNC, but for C identifiers containing underscores. */
 #undef FC_FUNC_
-
-/* Define if your system can handle overflow converting floating-point to
-   integer values. */
-#undef FP_TO_INTEGER_OVERFLOW_WORKS
 
 /* Define to 1 if you have the `alarm' function. */
 #undef HAVE_ALARM
@@ -141,8 +130,8 @@
 /* Define to 1 if you have the `gettimeofday' function. */
 #undef HAVE_GETTIMEOFDAY
 
-/* Define to 1 if you have the `get_fpc_csr' function. */
-#undef HAVE_GET_FPC_CSR
+/* Define if the compiler understands inline */
+#undef HAVE_INLINE
 
 /* Define if library will contain instrumentation to detect correct
    optimization operation */
@@ -169,14 +158,8 @@
 /* Define to 1 if you have the `mpe' library (-lmpe). */
 #undef HAVE_LIBMPE
 
-/* Define to 1 if you have the `nsl' library (-lnsl). */
-#undef HAVE_LIBNSL
-
 /* Define to 1 if you have the `pthread' library (-lpthread). */
 #undef HAVE_LIBPTHREAD
-
-/* Define to 1 if you have the `socket' library (-lsocket). */
-#undef HAVE_LIBSOCKET
 
 /* Define to 1 if you have the `sz' library (-lsz). */
 #undef HAVE_LIBSZ
@@ -289,14 +272,8 @@
 /* Define to 1 if you have the `system' function. */
 #undef HAVE_SYSTEM
 
-/* Define to 1 if you have the <sys/fpu.h> header file. */
-#undef HAVE_SYS_FPU_H
-
 /* Define to 1 if you have the <sys/ioctl.h> header file. */
 #undef HAVE_SYS_IOCTL_H
-
-/* Define to 1 if you have the <sys/proc.h> header file. */
-#undef HAVE_SYS_PROC_H
 
 /* Define to 1 if you have the <sys/resource.h> header file. */
 #undef HAVE_SYS_RESOURCE_H
@@ -306,9 +283,6 @@
 
 /* Define to 1 if you have the <sys/stat.h> header file. */
 #undef HAVE_SYS_STAT_H
-
-/* Define to 1 if you have the <sys/sysinfo.h> header file. */
-#undef HAVE_SYS_SYSINFO_H
 
 /* Define to 1 if you have the <sys/timeb.h> header file. */
 #undef HAVE_SYS_TIMEB_H
@@ -367,9 +341,11 @@
 /* Define to 1 if you have the `_scrsize' function. */
 #undef HAVE__SCRSIZE
 
-/* Define if your system can't handle converting floating-point values to long
-   long. */
-#undef HW_FP_TO_LLONG_NOT_WORKS
+/* Define if the compiler understands __inline */
+#undef HAVE___INLINE
+
+/* Define if the compiler understands __inline__ */
+#undef HAVE___INLINE__
 
 /* Define if HDF5's high-level library headers should be included in hdf5.h */
 #undef INCLUDE_HL
@@ -594,12 +570,6 @@
 
 /* Define to empty if `const' does not conform to ANSI C. */
 #undef const
-
-/* Define to `__inline__' or `__inline' if that's what the C compiler
-   calls it, or to nothing if 'inline' is not supported under any name.  */
-#ifndef __cplusplus
-#undef inline
-#endif
 
 /* Define to `long int' if <sys/types.h> does not define. */
 #undef off_t
