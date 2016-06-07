@@ -26,9 +26,6 @@
 namespace H5 {
 #endif
 
-#ifndef DOXYGEN_SHOULD_SKIP_THIS
-// For internal use only
-
 // This flag indicates whether H5Library::initH5cpp has been called to register
 // the terminating functions with atexit()
 bool IdComponent::H5cppinit = false;
@@ -37,23 +34,6 @@ bool IdComponent::H5cppinit = false;
 // Subclasses that have global constants use it.  This is a temporary
 // work-around in 1.8.16.  It will be removed after HDFFV-9540 is fixed.
 bool IdComponent::H5dontAtexit_called = false;
-#endif // DOXYGEN_SHOULD_SKIP_THIS
-
-//--------------------------------------------------------------------------
-// Function:	IdComponent overloaded constructor
-///\brief 	Creates an IdComponent object using the id of an existing
-///		object. - Obsolete, will be removed in 1.8.17
-// Param	h5_id - IN: Id of an existing object
-// Exception	H5::DataTypeIException
-// Programmer	Binh-Minh Ribler - 2000
-//
-// *** Deprecation warning ***
-// This constructor is no longer appropriate because the data member "id" had
-// been moved to the sub-classes.  It will be removed in 1.10 release.  If its
-// removal does not raise any problems in 1.10, it will be removed from 1.8 in
-// subsequent releases.
-//--------------------------------------------------------------------------
-IdComponent::IdComponent(const hid_t h5_id) {}
 
 //--------------------------------------------------------------------------
 // Function:	IdComponent::incRefCount
@@ -211,7 +191,7 @@ IdComponent& IdComponent::operator=( const IdComponent& rhs )
 	    // Note: a = b, so there are two objects with the same hdf5 id
 	    // that's why incRefCount is needed, and it is called by setId
 	}
-	catch (Exception close_error) {
+	catch (Exception& close_error) {
 	    throw FileIException(inMemFunc("operator="), close_error.getDetailMsg());
 	}
     }

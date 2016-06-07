@@ -49,8 +49,6 @@ namespace H5 {
 //--------------------------------------------------------------------------
 // Function	H5File default constructor
 ///\brief	Default constructor: creates a stub H5File object.
-///\par Description
-///		The data member \a id will be initialized to H5I_INVALID_HID.
 // Programmer	Binh-Minh Ribler - 2000
 //--------------------------------------------------------------------------
 H5File::H5File() : H5Location(), CommonFG(), id(H5I_INVALID_HID) {}
@@ -80,7 +78,7 @@ H5File::H5File() : H5Location(), CommonFG(), id(H5I_INVALID_HID) {}
 ///		For info on file creation in the case of an already-open file,
 ///		please refer to the \b Special \b case section in the C layer
 ///		Reference Manual at:
-/// https://www.hdfgroup.org/HDF5/doc/RM/RM_H5F.html#File-Create
+/// http://www.hdfgroup.org/HDF5/doc/RM/RM_H5F.html#File-Create
 // Notes	With a PGI compiler (~2012-2013), the exception thrown by p_get_file
 //		could not be caught in the applications.  Added try block here
 //		to catch then re-throw it. -BMR 2013/03/21
@@ -90,7 +88,7 @@ H5File::H5File( const char* name, unsigned int flags, const FileCreatPropList& c
 {
     try {
 	p_get_file(name, flags, create_plist, access_plist);
-    } catch (FileIException open_file) {
+    } catch (FileIException& open_file) {
 	throw open_file;
     }
 }
@@ -115,7 +113,7 @@ H5File::H5File( const H5std_string& name, unsigned int flags, const FileCreatPro
 {
     try {
 	p_get_file(name.c_str(), flags, create_plist, access_plist);
-    } catch (FileIException open_file) {
+    } catch (FileIException& open_file) {
 	throw open_file;
     }
 }
@@ -231,14 +229,15 @@ bool H5File::isHdf5(const H5std_string& name )
 ///\param	flags        - IN: File access flags
 ///\param	access_plist - IN: File access property list.  Default to
 ///		FileAccPropList::DEFAULT
-///\exception	H5::FileIException
 ///\par Description
 ///		Valid values of \a flags include:
-///		\li \c H5F_ACC_RDONLY - Open with read-only.
-///		\li \c H5F_ACC_RDWR - Open with read/write access.
-///		For more information about file access, please refer to the
-///		C layer Reference Manual page at:
-///		https://www.hdfgroup.org/HDF5/doc/RM/RM_H5F.html#File-Open
+///		H5F_ACC_RDWR:   Open with read/write access. If the file is
+///				currently open for read-only access then it
+///				will be reopened. Absence of this flag
+///				implies read-only access.
+///
+///		H5F_ACC_RDONLY: Open with read only access. - default
+///
 // Programmer	Binh-Minh Ribler - Oct, 2005
 //--------------------------------------------------------------------------
 void H5File::openFile(const char* name, unsigned int flags, const FileAccPropList& access_plist)
@@ -246,7 +245,7 @@ void H5File::openFile(const char* name, unsigned int flags, const FileAccPropLis
     try {
         close();
     }
-    catch (Exception close_error) {
+    catch (Exception& close_error) {
         throw FileIException("H5File::openFile", close_error.getDetailMsg());
     }
 
@@ -266,11 +265,6 @@ void H5File::openFile(const char* name, unsigned int flags, const FileAccPropLis
 ///\param	flags        - IN: File access flags
 ///\param	access_plist - IN: File access property list.  Default to
 ///		FileAccPropList::DEFAULT
-///\exception	H5::FileIException
-///\par Description
-///		Valid values of \a flags include:
-///		\li \c H5F_ACC_RDONLY - Open with read-only.
-///		\li \c H5F_ACC_RDWR - Open with read/write access.
 // Programmer	Binh-Minh Ribler - 2000
 //--------------------------------------------------------------------------
 void H5File::openFile(const H5std_string& name, unsigned int flags, const FileAccPropList& access_plist)
@@ -300,13 +294,13 @@ void H5File::reOpen()
     try {
         close();
     }
-    catch (Exception close_error) {
+    catch (Exception& close_error) {
         throw FileIException("H5File::reOpen", close_error.getDetailMsg());
     }
 
-   // call C routine to reopen the file
+   // call C routine to reopen the file - Note: not sure about this,
    // which id to be the parameter when closing?
-   id = H5Freopen(id);
+   id = H5Freopen( id );
    if( id < 0 ) // Raise exception when H5Freopen returns a neg value
       throw FileIException("H5File::reOpen", "H5Freopen failed");
 }
@@ -460,6 +454,8 @@ void H5File::getObjIDs(unsigned types, size_t max_objs, hid_t *oid_list) const
 ///		the file remains open; it will be invalid if the file is
 ///		closed and reopened or opened during a subsequent session.
 // Programmer   Binh-Minh Ribler - May 2004
+// Modification
+//		Replaced the version without const parameter - Apr, 2014
 //--------------------------------------------------------------------------
 void H5File::getVFDHandle(const FileAccPropList& fapl, void **file_handle) const
 {
@@ -469,23 +465,6 @@ void H5File::getVFDHandle(const FileAccPropList& fapl, void **file_handle) const
    {
       throw FileIException("H5File::getVFDHandle", "H5Fget_vfd_handle failed");
    }
-}
-
-//--------------------------------------------------------------------------
-// Function:	H5File::getVFDHandle
-///\brief	This is an overloaded member function, kept for backward
-///		compatibility.  It differs from the above function in that it
-///		misses const.  This wrapper will be removed in future release.
-///\param	fapl        - File access property list
-///\param	file_handle - Pointer to the file handle being used by
-///			      the low-level virtual file driver
-///\exception	H5::FileIException
-// Programmer   Binh-Minh Ribler - May 2004
-// Note:	Retiring April, 2014
-//--------------------------------------------------------------------------
-void H5File::getVFDHandle(FileAccPropList& fapl, void **file_handle) const
-{
-    getVFDHandle((const FileAccPropList)fapl, file_handle);
 }
 
 //--------------------------------------------------------------------------
@@ -590,7 +569,7 @@ void H5File::p_setId(const hid_t new_id)
     try {
         close();
     }
-    catch (Exception E) {
+    catch (Exception& E) {
         throw FileIException("H5File::p_setId", E.getDetailMsg());
     }
    // reset object's id to the given id
@@ -654,7 +633,7 @@ H5File::~H5File()
 {
     try {
 	close();
-    } catch (Exception close_error) {
+    } catch (Exception& close_error) {
 	cerr << "H5File::~H5File - " << close_error.getDetailMsg() << endl;
     }
 }

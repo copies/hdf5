@@ -71,9 +71,10 @@
 ./bin/make_overflow
 ./bin/make_vers
 ./bin/makehelp
-./bin/pkgscrpts/make1816TarFiles.pl       _DO_NOT_DISTRIBUTE_
-./bin/pkgscrpts/makeInternal1816README.pl _DO_NOT_DISTRIBUTE_
-./bin/pkgscrpts/makeOuter1816README.pl    _DO_NOT_DISTRIBUTE_
+./bin/pkgscrpts/hdf5-1.8.16-1-x86_64-szip.spec _DO_NOT_DISTRIBUTE_
+./bin/pkgscrpts/makeHDF5ReleaseTarFiles.pl       _DO_NOT_DISTRIBUTE_
+./bin/pkgscrpts/makeInternalREADME.pl _DO_NOT_DISTRIBUTE_
+./bin/pkgscrpts/makeOuterREADME.pl    _DO_NOT_DISTRIBUTE_
 ./bin/pkgscrpts/h5rmflags                 _DO_NOT_DISTRIBUTE_
 ./bin/missing
 ./bin/mkdirs
@@ -426,6 +427,7 @@
 ./c++/test/dsets.cpp
 ./c++/test/h5cpputil.cpp
 ./c++/test/h5cpputil.h
+./c++/test/tarray.cpp
 ./c++/test/tattr.cpp
 ./c++/test/tcompound.cpp
 ./c++/test/tdspl.cpp
@@ -1243,6 +1245,7 @@
 ./tools/testfiles/filter_fail.h5
 ./tools/testfiles/filter_fail.ddl
 ./tools/testfiles/h5dump-help.txt
+./tools/testfiles/non_existing.ddl
 ./tools/testfiles/packedbits.ddl
 ./tools/testfiles/taindices.h5
 ./tools/testfiles/tall-1.ddl
@@ -1391,6 +1394,13 @@
 ./tools/testfiles/tindicessub3.ddl
 ./tools/testfiles/tindicessub4.ddl
 ./tools/testfiles/tindicessub1.ddl
+./tools/testfiles/tints4dims.ddl
+./tools/testfiles/tints4dimsBlock2.ddl
+./tools/testfiles/tints4dimsBlockEq.ddl
+./tools/testfiles/tints4dimsCount2.ddl
+./tools/testfiles/tints4dimsCountEq.ddl
+./tools/testfiles/tints4dimsStride2.ddl
+./tools/testfiles/tints4dims.h5
 ./tools/testfiles/tintsattrs.ddl
 ./tools/testfiles/tintsattrs.h5
 ./tools/testfiles/tlarge_objname.ddl
@@ -1499,6 +1509,7 @@
 
 # h5dump test error files
 ./tools/h5dump/errfiles/filter_fail.err
+./tools/h5dump/errfiles/non_existing.err
 ./tools/h5dump/errfiles/tall-1.err
 ./tools/h5dump/errfiles/tall-2A.err
 ./tools/h5dump/errfiles/tall-2A0.err
@@ -2171,6 +2182,7 @@
 ./hl/test/test_image.c
 ./hl/test/test_lite.c
 ./hl/test/test_packet.c
+./hl/test/test_packet_vlen.c
 ./hl/test/test_table.c
 ./hl/test/test_ds_le.h5
 ./hl/test/test_ds_be.h5
