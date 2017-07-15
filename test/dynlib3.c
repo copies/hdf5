@@ -4,12 +4,10 @@
  *                                                                           *
  * This file is part of HDF5. The full HDF5 copyright notice, including      *
  * terms governing use, modification, and redistribution, is contained in    *
- * the files COPYING and Copyright.html.  COPYING can be found at the root   *
- * of the source code distribution tree; Copyright.html can be found at the  *
- * root level of an installed copy of the electronic document set and is     *
- * linked from the top-level documents page.  It can also be found at        *
- * http://hdfgroup.org/HDF5/doc/Copyright.html.  If you do not have access   *
- * to either file, you may request a copy from help@hdfgroup.org.            *
+ * the COPYING file, which can be found at the root of the source code       *
+ * distribution tree, or in https://support.hdfgroup.org/ftp/HDF5/releases.  *
+ * If you do not have access to either file, you may request a copy from     *
+ * help@hdfgroup.org.                                                        *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 /*
  * Programmer:	Raymond Lu
@@ -81,7 +79,7 @@ H5Z_filter_dynlib3(unsigned int flags, size_t cd_nelmts,
         void    *outbuf = NULL;     /* Pointer to new buffer */
         unsigned char *dst;         /* Temporary pointer to destination buffer */
 
-	dst = (unsigned char *)(outbuf = malloc(nbytes + SUFFIX_LEN));
+	dst = (unsigned char *)(outbuf = H5allocate_memory(nbytes + SUFFIX_LEN, 0));
 
         /* Copy raw data */
         memcpy((void*)dst, (void*)(*buf), nbytes);
@@ -91,7 +89,7 @@ H5Z_filter_dynlib3(unsigned int flags, size_t cd_nelmts,
         memcpy(dst, (void*)GROUP_SUFFIX, SUFFIX_LEN);
 
         /* Free input buffer */
- 	free(*buf);
+ 	H5free_memory(*buf);
 
         /* Set return values */
         *buf_size = nbytes + SUFFIX_LEN;

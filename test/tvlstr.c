@@ -5,12 +5,10 @@
  *                                                                           *
  * This file is part of HDF5.  The full HDF5 copyright notice, including     *
  * terms governing use, modification, and redistribution, is contained in    *
- * the files COPYING and Copyright.html.  COPYING can be found at the root   *
- * of the source code distribution tree; Copyright.html can be found at the  *
- * root level of an installed copy of the electronic HDF5 document set and   *
- * is linked from the top-level documents page.  It can also be found at     *
- * http://hdfgroup.org/HDF5/doc/Copyright.html.  If you do not have          *
- * access to either file, you may request a copy from help@hdfgroup.org.     *
+ * the COPYING file, which can be found at the root of the source code       *
+ * distribution tree, or in https://support.hdfgroup.org/ftp/HDF5/releases.  *
+ * If you do not have access to either file, you may request a copy from     *
+ * help@hdfgroup.org.                                                        *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 /***********************************************************
@@ -604,7 +602,7 @@ static void test_write_vl_string_attribute(void)
     if(HDstrcmp(string_att_check,string_att) != 0)
         TestErrPrintf("VL string attributes don't match!, string_att=%s, string_att_check=%s\n",string_att,string_att_check);
 
-    HDfree(string_att_check);
+    H5free_memory(string_att_check);
     string_att_check = NULL;
 
     ret = H5Aclose(att);
@@ -626,7 +624,7 @@ static void test_write_vl_string_attribute(void)
     if(HDstrcmp(string_att_check,string_att_write) != 0)
         TestErrPrintf("VL string attributes don't match!, string_att_write=%s, string_att_check=%s\n",string_att_write,string_att_check);
 
-    HDfree(string_att_check);
+    H5free_memory(string_att_check);
     string_att_check = NULL;
 
     /* The attribute string written is freed below, in the test_read_vl_string_attribute() test */
@@ -687,7 +685,7 @@ static void test_read_vl_string_attribute(void)
     if(HDstrcmp(string_att_check,string_att) != 0)
         TestErrPrintf("VL string attributes don't match!, string_att=%s, string_att_check=%s\n",string_att,string_att_check);
 
-    HDfree(string_att_check);
+    H5free_memory(string_att_check);
     string_att_check = NULL;
 
     ret = H5Aclose(att);
@@ -704,7 +702,7 @@ static void test_read_vl_string_attribute(void)
         if(HDstrcmp(string_att_check,string_att_write) != 0)
             TestErrPrintf("VL string attributes don't match!, string_att_write=%s, string_att_check=%s\n",string_att_write,string_att_check);
 
-        HDfree(string_att_check);
+        H5free_memory(string_att_check);
         string_att_check = NULL;
     }
 
@@ -762,7 +760,8 @@ static void read_scalar_dset(hid_t file, hid_t type, hid_t space, char *name, ch
     if(HDstrcmp(data, data_read))
         TestErrPrintf("Expected %s for dataset %s but read %s\n", data, name, data_read);
 
-    HDfree(data_read);
+    ret = H5Dvlen_reclaim(type, space, H5P_DEFAULT, &data_read);
+    CHECK(ret, FAIL, "H5Dvlen_reclaim");
 }
 
 /****************************************************************

@@ -5,12 +5,10 @@
  *                                                                           *
  * This file is part of HDF5.  The full HDF5 copyright notice, including     *
  * terms governing use, modification, and redistribution, is contained in    *
- * the files COPYING and Copyright.html.  COPYING can be found at the root   *
- * of the source code distribution tree; Copyright.html can be found at the  *
- * root level of an installed copy of the electronic HDF5 document set and   *
- * is linked from the top-level documents page.  It can also be found at     *
- * http://hdfgroup.org/HDF5/doc/Copyright.html.  If you do not have          *
- * access to either file, you may request a copy from help@hdfgroup.org.     *
+ * the COPYING file, which can be found at the root of the source code       *
+ * distribution tree, or in https://support.hdfgroup.org/ftp/HDF5/releases.  *
+ * If you do not have access to either file, you may request a copy from     *
+ * help@hdfgroup.org.                                                        *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
  /*
@@ -128,7 +126,7 @@ main(void) {
    /*
     *  Get datatype of the dataset "B"
     */
-   did_b = H5Rdereference(did_r, H5R_OBJECT, &rbuf[1]);
+   did_b = H5Rdereference2(did_r, H5P_DEFAULT, H5R_OBJECT, &rbuf[1]);
    tid_b = H5Dget_type(did_b);
    if(H5Tequal(tid_b, H5T_NATIVE_FLOAT))
      printf("Datatype of the dataset is H5T_NATIVE_FLOAT.\n");

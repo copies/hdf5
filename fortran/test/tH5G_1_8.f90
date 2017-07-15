@@ -14,12 +14,10 @@
 !                                                                             *
 !   This file is part of HDF5.  The full HDF5 copyright notice, including     *
 !   terms governing use, modification, and redistribution, is contained in    *
-!   the files COPYING and Copyright.html.  COPYING can be found at the root   *
-!   of the source code distribution tree; Copyright.html can be found at the  *
-!   root level of an installed copy of the electronic HDF5 document set and   *
-!   is linked from the top-level documents page.  It can also be found at     *
-!   http://hdfgroup.org/HDF5/doc/Copyright.html.  If you do not have          *
-!   access to either file, you may request a copy from help@hdfgroup.org.     *
+!   the COPYING file, which can be found at the root of the source code       *
+!   distribution tree, or in https://support.hdfgroup.org/ftp/HDF5/releases.  *
+!   If you do not have access to either file, you may request a copy from     *
+!   help@hdfgroup.org.                                                        *
 ! * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 !
 ! CONTAINS SUBROUTINES
@@ -31,11 +29,13 @@
 
 MODULE TH5G_1_8
 
+  USE HDF5
+  USE TH5_MISC
+  USE TH5_MISC_GEN
+
 CONTAINS
 
 SUBROUTINE group_test(cleanup, total_error)
-  USE HDF5 ! This module contains all necessary modules
-  USE TH5_MISC
 
   IMPLICIT NONE
   LOGICAL, INTENT(IN)  :: cleanup
@@ -138,9 +138,6 @@ END SUBROUTINE group_test
 ! 
 
 SUBROUTINE group_info(cleanup, fapl, total_error)
-
-  USE HDF5 ! This module contains all necessary modules
-  USE TH5_MISC
 
   IMPLICIT NONE
   INTEGER, INTENT(INOUT) :: total_error
@@ -269,7 +266,7 @@ SUBROUTINE group_info(cleanup, fapl, total_error)
            !  Check for out of bound query by index on empty group, should fail 
            CALL H5Gget_info_by_idx_f(group_id, ".", H5_INDEX_NAME_F, order, INT(0,HSIZE_T), &
                 storage_type, nlinks, max_corder, error)
-           CALL VERIFY("H5Gget_info_by_idx_f", error, -1, total_error)
+           CALL verify("H5Gget_info_by_idx_f", error, -1, total_error)
 
            !  Create several links, up to limit of compact form 
            DO u = 0, max_compact-1
@@ -287,29 +284,29 @@ SUBROUTINE group_info(cleanup, fapl, total_error)
               CALL check("H5Gget_info_f", error, total_error)
 
               !  Check (new/empty) group's information 
-              CALL VERIFY("H5Gget_info_f", storage_type, H5G_STORAGE_TYPE_COMPACT_F, total_error)
-              CALL VERIFY("H5Gget_info_f", max_corder, 0, total_error)
-              CALL VERIFY("H5Gget_info_f", nlinks, 0, total_error)
-              CALL verifyLogical("H5Gget_info_f.mounted", mounted,.FALSE.,total_error)
+              CALL verify("H5Gget_info_f", storage_type, H5G_STORAGE_TYPE_COMPACT_F, total_error)
+              CALL verify("H5Gget_info_f", max_corder, 0, total_error)
+              CALL verify("H5Gget_info_f", nlinks, 0, total_error)
+              CALL verify("H5Gget_info_f.mounted", mounted,.FALSE.,total_error)
 
               !  Retrieve group's information 
               CALL H5Gget_info_by_name_f(group_id, objname, storage_type, nlinks, max_corder, error, mounted=mounted)
               CALL check("H5Gget_info_by_name_f", error, total_error)
 
               !  Check (new/empty) group's information 
-              CALL VERIFY("H5Gget_info_by_name_f", storage_type, H5G_STORAGE_TYPE_COMPACT_F, total_error)
-              CALL VERIFY("H5Gget_info_by_name_f", max_corder, 0, total_error)
-              CALL VERIFY("H5Gget_info_by_name_f", nlinks, 0, total_error)
-              CALL verifyLogical("H5Gget_info_by_name_f.mounted", mounted,.FALSE.,total_error)
+              CALL verify("H5Gget_info_by_name_f", storage_type, H5G_STORAGE_TYPE_COMPACT_F, total_error)
+              CALL verify("H5Gget_info_by_name_f", max_corder, 0, total_error)
+              CALL verify("H5Gget_info_by_name_f", nlinks, 0, total_error)
+              CALL verify("H5Gget_info_by_name_f.mounted", mounted,.FALSE.,total_error)
 
               !  Retrieve group's information 
               CALL H5Gget_info_by_name_f(group_id2, ".", storage_type, nlinks, max_corder, error)
               CALL check("H5Gget_info_by_name", error, total_error)
 
               !  Check (new/empty) group's information 
-              CALL VERIFY("H5Gget_info_by_name_f", storage_type, H5G_STORAGE_TYPE_COMPACT_F, total_error)
-              CALL VERIFY("H5Gget_info_by_name_f", max_corder, 0, total_error)
-              CALL VERIFY("H5Gget_info_by_name_f", nlinks, 0, total_error)
+              CALL verify("H5Gget_info_by_name_f", storage_type, H5G_STORAGE_TYPE_COMPACT_F, total_error)
+              CALL verify("H5Gget_info_by_name_f", max_corder, 0, total_error)
+              CALL verify("H5Gget_info_by_name_f", nlinks, 0, total_error)
 
               !  Create objects in new group created 
               DO v = 0, u
@@ -331,27 +328,27 @@ SUBROUTINE group_info(cleanup, fapl, total_error)
               CALL check("H5Gget_info_f", error, total_error)
 
               !  Check (new) group's information 
-              CALL VERIFY("H5Gget_info_f", storage_type, H5G_STORAGE_TYPE_COMPACT_F, total_error)
-              CALL VERIFY("H5Gget_info_f", max_corder, u+1, total_error)
-              CALL VERIFY("H5Gget_info_f", nlinks, u+1, total_error)
+              CALL verify("H5Gget_info_f", storage_type, H5G_STORAGE_TYPE_COMPACT_F, total_error)
+              CALL verify("H5Gget_info_f", max_corder, u+1, total_error)
+              CALL verify("H5Gget_info_f", nlinks, u+1, total_error)
 
               !  Retrieve group's information 
               CALL H5Gget_info_by_name_f(group_id, objname, storage_type, nlinks, max_corder, error)
               CALL check("H5Gget_info_by_name_f", error, total_error)
 
               !  Check (new) group's information 
-              CALL VERIFY("H5Gget_info_by_name_f", storage_type, H5G_STORAGE_TYPE_COMPACT_F, total_error)
-              CALL VERIFY("H5Gget_info_by_name_f",max_corder, u+1, total_error)
-              CALL VERIFY("H5Gget_info_by_name_f", nlinks, u+1, total_error)
+              CALL verify("H5Gget_info_by_name_f", storage_type, H5G_STORAGE_TYPE_COMPACT_F, total_error)
+              CALL verify("H5Gget_info_by_name_f",max_corder, u+1, total_error)
+              CALL verify("H5Gget_info_by_name_f", nlinks, u+1, total_error)
 
               !  Retrieve group's information 
               CALL H5Gget_info_by_name_f(group_id2, ".", storage_type, nlinks, max_corder, error)
               CALL check("H5Gget_info_by_name_f", error, total_error)
 
               !  Check (new) group's information 
-              CALL VERIFY("H5Gget_info_by_name_f", storage_type, H5G_STORAGE_TYPE_COMPACT_F, total_error)
-              CALL VERIFY("H5Gget_info_by_name_f", max_corder, u+1, total_error)
-              CALL VERIFY("H5Gget_info_by_name_f", nlinks, u+1, total_error)
+              CALL verify("H5Gget_info_by_name_f", storage_type, H5G_STORAGE_TYPE_COMPACT_F, total_error)
+              CALL verify("H5Gget_info_by_name_f", max_corder, u+1, total_error)
+              CALL verify("H5Gget_info_by_name_f", nlinks, u+1, total_error)
 
               !  Retrieve group's information 
               IF(order.NE.H5_ITER_NATIVE_F)THEN
@@ -359,17 +356,17 @@ SUBROUTINE group_info(cleanup, fapl, total_error)
                     CALL H5Gget_info_by_idx_f(group_id, ".", idx_type, order, INT(u,HSIZE_T), &
                          storage_type, nlinks, max_corder, error,lapl_id=H5P_DEFAULT_F, mounted=mounted)
                     CALL check("H5Gget_info_by_idx_f", error, total_error)
-                    CALL verifyLogical("H5Gget_info_by_idx_f", mounted,.FALSE.,total_error)
+                    CALL verify("H5Gget_info_by_idx_f", mounted,.FALSE.,total_error)
                  ELSE
                     CALL H5Gget_info_by_idx_f(group_id, ".", idx_type, order, INT(0,HSIZE_T), &
                          storage_type, nlinks, max_corder, error, mounted=mounted)
-                    CALL verifyLogical("H5Gget_info_by_idx_f", mounted,.FALSE.,total_error)
+                    CALL verify("H5Gget_info_by_idx_f", mounted,.FALSE.,total_error)
                     CALL check("H5Gget_info_by_idx_f", error, total_error)
                  ENDIF
               !  Check (new) group's information 
-                 CALL VERIFY("H5Gget_info_by_idx_f", storage_type, H5G_STORAGE_TYPE_COMPACT_F, total_error)
-                 CALL VERIFY("H5Gget_info_by_idx_f", max_corder, u+1, total_error)
-                 CALL VERIFY("H5Gget_info_by_idx_f", nlinks, u+1, total_error)
+                 CALL verify("H5Gget_info_by_idx_f", storage_type, H5G_STORAGE_TYPE_COMPACT_F, total_error)
+                 CALL verify("H5Gget_info_by_idx_f", max_corder, u+1, total_error)
+                 CALL verify("H5Gget_info_by_idx_f", nlinks, u+1, total_error)
               ENDIF
               !  Close group created 
               CALL H5Gclose_f(group_id2, error)
@@ -380,27 +377,27 @@ SUBROUTINE group_info(cleanup, fapl, total_error)
               CALL check("H5Gget_info_f", error, total_error)
 
               !  Check main group's information 
-              CALL VERIFY("H5Gget_info_f", storage_type, H5G_STORAGE_TYPE_COMPACT_F, total_error)
-              CALL VERIFY("H5Gget_info_f", max_corder, u+1, total_error)
-              CALL VERIFY("H5Gget_info_f", nlinks, u+1, total_error)
+              CALL verify("H5Gget_info_f", storage_type, H5G_STORAGE_TYPE_COMPACT_F, total_error)
+              CALL verify("H5Gget_info_f", max_corder, u+1, total_error)
+              CALL verify("H5Gget_info_f", nlinks, u+1, total_error)
 
               !  Retrieve main group's information, by name 
               CALL H5Gget_info_by_name_f(file_id, CORDER_GROUP_NAME, storage_type, nlinks, max_corder, error)
               CALL check("H5Gget_info_by_name_f", error, total_error)
 
               !  Check main group's information 
-              CALL VERIFY("H5Gget_info_by_name_f", storage_type, H5G_STORAGE_TYPE_COMPACT_F, total_error)
-              CALL VERIFY("H5Gget_info_by_name_f", max_corder, u+1, total_error)
-              CALL VERIFY("H5Gget_info_by_name_f", nlinks, u+1, total_error)
+              CALL verify("H5Gget_info_by_name_f", storage_type, H5G_STORAGE_TYPE_COMPACT_F, total_error)
+              CALL verify("H5Gget_info_by_name_f", max_corder, u+1, total_error)
+              CALL verify("H5Gget_info_by_name_f", nlinks, u+1, total_error)
 
               !  Retrieve main group's information, by name 
               CALL H5Gget_info_by_name_f(group_id, ".", storage_type, nlinks, max_corder, error, H5P_DEFAULT_F)
               CALL check("H5Gget_info_by_name_f", error, total_error)
 
               !  Check main group's information 
-              CALL VERIFY("H5Gget_info_by_name_f", storage_type, H5G_STORAGE_TYPE_COMPACT_F, total_error)
-              CALL VERIFY("H5Gget_info_by_name_f", max_corder, u+1, total_error)
-              CALL VERIFY("H5Gget_info_by_name_f", nlinks, u+1, total_error)
+              CALL verify("H5Gget_info_by_name_f", storage_type, H5G_STORAGE_TYPE_COMPACT_F, total_error)
+              CALL verify("H5Gget_info_by_name_f", max_corder, u+1, total_error)
+              CALL verify("H5Gget_info_by_name_f", nlinks, u+1, total_error)
 
               !  Create soft link in another group, to objects in main group 
               valname = CORDER_GROUP_NAME//objname
@@ -412,9 +409,9 @@ SUBROUTINE group_info(cleanup, fapl, total_error)
               CALL check("H5Gget_info_f", error, total_error)
 
               !  Check soft link group's information 
-              CALL VERIFY("H5Gget_info_f", storage_type, H5G_STORAGE_TYPE_COMPACT_F, total_error)
-              CALL VERIFY("H5Gget_info_f", max_corder, u+1, total_error)
-              CALL VERIFY("H5Gget_info_f", nlinks, u+1, total_error)
+              CALL verify("H5Gget_info_f", storage_type, H5G_STORAGE_TYPE_COMPACT_F, total_error)
+              CALL verify("H5Gget_info_f", max_corder, u+1, total_error)
+              CALL verify("H5Gget_info_f", nlinks, u+1, total_error)
            ENDDO
 
            !  Close the groups 
@@ -456,9 +453,6 @@ SUBROUTINE group_info(cleanup, fapl, total_error)
 
    SUBROUTINE timestamps(cleanup, fapl, total_error)
 
-     USE HDF5 ! This module contains all necessary modules
-     USE TH5_MISC
-
      IMPLICIT NONE
      INTEGER, INTENT(INOUT) :: total_error
      INTEGER(HID_T), INTENT(IN) :: fapl
@@ -491,7 +485,7 @@ SUBROUTINE group_info(cleanup, fapl, total_error)
      CALL check("H5Pget_obj_track_times_f", error, total_error)
 
      ! Check default timestamp information 
-     CALL VerifyLogical("H5Pget_obj_track_times",track_times,.TRUE.,total_error)
+     CALL verify("H5Pget_obj_track_times",track_times,.TRUE.,total_error)
 
      !  Set a non-default object timestamp setting 
      CALL H5Pset_obj_track_times_f(gcpl_id, .FALSE., error)
@@ -502,7 +496,7 @@ SUBROUTINE group_info(cleanup, fapl, total_error)
      CALL check("H5Pget_obj_track_times_f", error, total_error)
 
      !  Check default timestamp information 
-     CALL VerifyLogical("H5Pget_obj_track_times",track_times,.FALSE.,total_error)
+     CALL verify("H5Pget_obj_track_times",track_times,.FALSE.,total_error)
 
      !  Create file 
      !h5_fixname(FILENAME[0], fapl, filename, sizeof filename);
@@ -533,10 +527,10 @@ SUBROUTINE group_info(cleanup, fapl, total_error)
     !  Query & verify the object timestamp settings 
      CALL H5Pget_obj_track_times_f(gcpl_id, track_times, error)
      CALL check("H5Pget_obj_track_times_f", error, total_error)
-     CALL VerifyLogical("H5Pget_obj_track_times1",track_times,.FALSE.,total_error)
+     CALL verify("H5Pget_obj_track_times1",track_times,.FALSE.,total_error)
      CALL H5Pget_obj_track_times_f(gcpl_id2, track_times, error)
      CALL check("H5Pget_obj_track_times_f", error, total_error)
-     CALL VerifyLogical("H5Pget_obj_track_times2",track_times,.TRUE.,total_error)
+     CALL verify("H5Pget_obj_track_times2",track_times,.TRUE.,total_error)
 
 !     Query the object information for each group 
 !    if(H5Oget_info(group_id, &oinfo) < 0) TEST_ERROR
@@ -593,10 +587,10 @@ SUBROUTINE group_info(cleanup, fapl, total_error)
 
      CALL H5Pget_obj_track_times_f(gcpl_id, track_times, error)
      CALL check("H5Pget_obj_track_times_f", error, total_error)
-     CALL VerifyLogical("H5Pget_obj_track_times1",track_times,.FALSE.,total_error)
+     CALL verify("H5Pget_obj_track_times1",track_times,.FALSE.,total_error)
      CALL H5Pget_obj_track_times_f(gcpl_id2, track_times, error)
      CALL check("H5Pget_obj_track_times_f", error, total_error)
-     CALL VerifyLogical("H5Pget_obj_track_times2",track_times,.TRUE.,total_error)
+     CALL verify("H5Pget_obj_track_times2",track_times,.TRUE.,total_error)
 !!$
 !!$     Query the object information for each group 
 !!$    if(H5Oget_info(group_id, &oinfo) < 0) TEST_ERROR
@@ -653,9 +647,6 @@ SUBROUTINE group_info(cleanup, fapl, total_error)
 
    SUBROUTINE mklinks(fapl, total_error)
 
-     USE HDF5 ! This module contains all necessary modules
-     USE TH5_MISC
-
      IMPLICIT NONE
      INTEGER, INTENT(INOUT) :: total_error
      INTEGER(HID_T), INTENT(IN) :: fapl
@@ -711,12 +702,12 @@ SUBROUTINE group_info(cleanup, fapl, total_error)
           error, H5P_DEFAULT_F)
      CALL check("H5Lget_info_f",error,total_error)
 
-!     CALL VerifyLogical("H5Lget_info_by_idx_f11", f_corder_valid, .TRUE., total_error)
+!     CALL verify("H5Lget_info_by_idx_f11", f_corder_valid, .TRUE., total_error)
 
-     CALL VERIFY("H5Lget_info_by_idx_f", H5L_TYPE_SOFT_F, link_type, total_error)
-     CALL VERIFY("H5Lget_info_by_idx_f", cset, H5T_CSET_ASCII_F, total_error)
+     CALL verify("H5Lget_info_by_idx_f", H5L_TYPE_SOFT_F, link_type, total_error)
+     CALL verify("H5Lget_info_by_idx_f", cset, H5T_CSET_ASCII_F, total_error)
      ! should be '/d1' + NULL character = 4
-     CALL VERIFY("H5Lget_info_by_idx_f", INT(val_size), 4, total_error)
+     CALL verify("H5Lget_info_by_idx_f", INT(val_size), 4, total_error)
 
     ! Create a symbolic link to something that doesn't exist 
 
@@ -748,9 +739,6 @@ SUBROUTINE group_info(cleanup, fapl, total_error)
 ! 
 
   SUBROUTINE test_move_preserves(fapl_id, total_error)
-
-    USE HDF5 ! This module contains all necessary modules
-    USE TH5_MISC
 
     IMPLICIT NONE
     INTEGER, INTENT(INOUT) :: total_error
@@ -798,14 +786,14 @@ SUBROUTINE group_info(cleanup, fapl, total_error)
 
     CALL H5Pget_link_creation_order_f(fcpl_id, crt_order_flags, error)
     CALL check("H5Pget_link_creation_order_f",error, total_error)
-    CALL VERIFY("H5Pget_link_creation_order_f",crt_order_flags,0, total_error)
+    CALL verify("H5Pget_link_creation_order_f",crt_order_flags,0, total_error)
 
     CALL H5Pset_link_creation_order_f(fcpl_id, H5P_CRT_ORDER_TRACKED_F, error)
     CALL check("H5Pset_link_creation_order_f", error, total_error)
 
     CALL H5Pget_link_creation_order_f(fcpl_id, crt_order_flags, error)
     CALL check("H5Pget_link_creation_order_f",error, total_error)
-    CALL VERIFY("H5Pget_link_creation_order_f",crt_order_flags, H5P_CRT_ORDER_TRACKED_F, total_error)
+    CALL verify("H5Pget_link_creation_order_f",crt_order_flags, H5P_CRT_ORDER_TRACKED_F, total_error)
 
     ! Create file 
     ! (with creation order tracking for the root group) 
@@ -835,10 +823,10 @@ SUBROUTINE group_info(cleanup, fapl, total_error)
 !    if(H5Oget_info_by_name(file_id, "group", &oinfo, H5P_DEFAULT) < 0) TEST_ERROR
 
     old_cset = cset
-    CALL VERIFY("H5Lget_info_f",old_cset,H5T_CSET_UTF8_F,total_error)
-    CALL VerifyLogical("H5Lget_info_f",f_corder_valid,.TRUE.,total_error)
+    CALL verify("H5Lget_info_f",old_cset,H5T_CSET_UTF8_F,total_error)
+    CALL verify("H5Lget_info_f",f_corder_valid,.TRUE.,total_error)
     old_corder = corder;
-    CALL VERIFY("H5Lget_info_f",old_corder,0,total_error)
+    CALL verify("H5Lget_info_f",old_corder,0,total_error)
 
 !    old_modification_time = oinfo.mtime;
 
@@ -955,10 +943,6 @@ SUBROUTINE group_info(cleanup, fapl, total_error)
 ! *-------------------------------------------------------------------------
 ! 
 SUBROUTINE lifecycle(cleanup, fapl2, total_error)
-
-
-  USE HDF5 ! This module contains all necessary modules
-  USE TH5_MISC
 
   IMPLICIT NONE
   INTEGER, INTENT(INOUT) :: total_error
@@ -1105,10 +1089,6 @@ SUBROUTINE lifecycle(cleanup, fapl2, total_error)
 
   SUBROUTINE cklinks(fapl, total_error)
 
-!    USE ISO_C_BINDING
-  USE HDF5 ! This module contains all necessary modules
-  USE TH5_MISC
-
   IMPLICIT NONE
   INTEGER, INTENT(INOUT) :: total_error
   INTEGER(HID_T), INTENT(IN) :: fapl
@@ -1146,10 +1126,10 @@ SUBROUTINE lifecycle(cleanup, fapl2, total_error)
 
 
   CALL H5Lexists_f(file,"d1",Lexists, error)
-  CALL verifylogical("H5Lexists", Lexists,.TRUE.,total_error)
+  CALL verify("H5Lexists", Lexists,.TRUE.,total_error)
 
   CALL H5Lexists_f(file,"grp1/hard",Lexists, error)
-  CALL verifylogical("H5Lexists", Lexists,.TRUE.,total_error)
+  CALL verify("H5Lexists", Lexists,.TRUE.,total_error)
 
   !  Cleanup 
   CALL H5Fclose_f(file,error)
@@ -1175,9 +1155,6 @@ END SUBROUTINE cklinks
 ! *-------------------------------------------------------------------------
 ! 
 SUBROUTINE delete_by_idx(cleanup, fapl, total_error)
-
-  USE HDF5 ! This module contains all necessary modules
-  USE TH5_MISC
 
   IMPLICIT NONE
   INTEGER, INTENT(INOUT) :: total_error
@@ -1294,7 +1271,7 @@ SUBROUTINE delete_by_idx(cleanup, fapl, total_error)
 
            !  Check for deletion on empty group 
            CALL H5Ldelete_by_idx_f(group_id, ".", idx_type, iorder, INT(0,HSIZE_T), error)
-           CALL VERIFY("delete_by_idx.H5Ldelete_by_idx_f", error, -1, total_error) ! test should fail (error = -1)
+           CALL verify("delete_by_idx.H5Ldelete_by_idx_f", error, -1, total_error) ! test should fail (error = -1)
            !  Create several links, up to limit of compact form 
            DO u = 0, max_compact-1
               !  Make name for link 
@@ -1319,7 +1296,7 @@ SUBROUTINE delete_by_idx(cleanup, fapl, total_error)
            htmp =9
 !EP           CALL H5Ldelete_by_idx_f(group_id, ".", idx_type, iorder, INT(u,HSIZE_T), error)
            CALL H5Ldelete_by_idx_f(group_id, ".", idx_type, iorder, htmp, error)
-           CALL VERIFY("H5Ldelete_by_idx_f", error, -1, total_error) ! test should fail (error = -1)
+           CALL verify("H5Ldelete_by_idx_f", error, -1, total_error) ! test should fail (error = -1)
 
 
            !  Delete links from compact group 
@@ -1340,21 +1317,21 @@ SUBROUTINE delete_by_idx(cleanup, fapl, total_error)
               CALL H5Iget_type_f(grp, id_type, error)
               CALL check("H5Iget_type_f", error, total_error)
 
-              CALL VERIFY("H5Iget_type_f", id_type, H5I_GROUP_F, total_error)
+              CALL verify("H5Iget_type_f", id_type, H5I_GROUP_F, total_error)
 
               CALL H5Gclose_f(grp, error)
               CALL check("H5Gclose_f", error, total_error)
 
-              CALL VerifyLogical("H5Lget_info_by_idx_f", f_corder_valid, .TRUE., total_error)
+              CALL verify("H5Lget_info_by_idx_f", f_corder_valid, .TRUE., total_error)
 
-              CALL VERIFY("H5Lget_info_by_idx_f", H5L_TYPE_HARD_F, link_type, total_error)
+              CALL verify("H5Lget_info_by_idx_f", H5L_TYPE_HARD_F, link_type, total_error)
               IF(iorder.EQ.H5_ITER_INC_F)THEN
-                 CALL VERIFY("H5Lget_info_by_idx_f", corder, u+1, total_error)
+                 CALL verify("H5Lget_info_by_idx_f", corder, u+1, total_error)
               ELSE
-                 CALL VERIFY("H5Lget_info_by_idx_f", corder, (max_compact - (u + 2)), total_error)
+                 CALL verify("H5Lget_info_by_idx_f", corder, (max_compact - (u + 2)), total_error)
               ENDIF
 
-              CALL VERIFY("H5Lget_info_by_idx_f",cset, H5T_CSET_ASCII_F, total_error)
+              CALL verify("H5Lget_info_by_idx_f",cset, H5T_CSET_ASCII_F, total_error)
 
 
 
@@ -1371,7 +1348,7 @@ SUBROUTINE delete_by_idx(cleanup, fapl, total_error)
 !!$              ENDIF
 !!$              objname = 'fill '//chr2
 !!$              PRINT*,objname, tmpname
-!!$              CALL verifyString("delete_by_idx.H5Lget_name_by_idx_f", objname, tmpname,  total_error)
+!!$              CALL verify("delete_by_idx.H5Lget_name_by_idx_f", objname, tmpname,  total_error)
            ENDDO
 
            !  Close the group 
@@ -1404,7 +1381,7 @@ END SUBROUTINE delete_by_idx
 ! * Purpose:     Support routine for link_info_by_idx, to verify the link
 ! *              info is correct for a link
 ! *
-! * Note:	This routine assumes that the links have been inserted in the
+! * Note:	 This routine assumes that the links have been inserted in the
 ! *              group in alphabetical order.
 ! *
 ! * Return:      Success:        0
@@ -1417,9 +1394,6 @@ END SUBROUTINE delete_by_idx
 ! 
 SUBROUTINE link_info_by_idx_check(group_id, linkname, n, &
     hard_link, use_index, total_error)
-
-  USE HDF5 ! This module contains all necessary modules
-  USE TH5_MISC
 
   IMPLICIT NONE
   INTEGER, INTENT(INOUT) :: total_error
@@ -1455,14 +1429,14 @@ SUBROUTINE link_info_by_idx_check(group_id, linkname, n, &
   CALL H5Lget_info_by_idx_f(group_id, ".", H5_INDEX_CRT_ORDER_F, H5_ITER_INC_F, INT(0,HSIZE_T), &
        link_type, f_corder_valid, corder, cset, address, val_size, error)
   CALL check("H5Lget_info_by_idx_f", error, total_error)
-  CALL VERIFY("H5Lget_info_by_idx_f", corder, 0, total_error)
+  CALL verify("H5Lget_info_by_idx_f", corder, 0, total_error)
 
   !  Verify the link information for new link, in increasing creation order 
   ! HDmemset(&linfo, 0, sizeof(linfo));
   CALL H5Lget_info_by_idx_f(group_id, ".", H5_INDEX_CRT_ORDER_F, H5_ITER_INC_F, INT(n,HSIZE_T), &
        link_type, f_corder_valid, corder, cset, address, val_size, error)
   CALL check("H5Lget_info_by_idx_f", error, total_error)
-  CALL VERIFY("H5Lget_info_by_idx_f", corder, n, total_error)
+  CALL verify("H5Lget_info_by_idx_f", corder, n, total_error)
 
   !  Verify value for new soft link, in increasing creation order 
 !!$  IF(hard_link)THEN
@@ -1481,21 +1455,21 @@ SUBROUTINE link_info_by_idx_check(group_id, linkname, n, &
 
   CALL H5Lget_name_by_idx_f(group_id, ".", H5_INDEX_CRT_ORDER_F, H5_ITER_INC_F, INT(n,HSIZE_T), tmpname_small, error, size_tmp)
   CALL check("link_info_by_idx_check.H5Lget_name_by_idx_f", error, total_error)
-  CALL verifyString("link_info_by_idx_check.H5Lget_name_by_idx_f", &
+  CALL verify("link_info_by_idx_check.H5Lget_name_by_idx_f", &
        linkname(1:LEN(tmpname_small)), tmpname_small(1:LEN(tmpname_small)),  total_error)
-  CALL VERIFY("link_info_by_idx_check.H5Lget_name_by_idx_f", INT(size_tmp), 7, total_error)
+  CALL verify("link_info_by_idx_check.H5Lget_name_by_idx_f", INT(size_tmp), 7, total_error)
   ! try it with the correct size
   CALL H5Lget_name_by_idx_f(group_id, ".", H5_INDEX_CRT_ORDER_F, H5_ITER_INC_F, INT(n,HSIZE_T), tmpname, error, size=size_tmp)
   CALL check("link_info_by_idx_check.H5Lget_name_by_idx_f", error, total_error)
-  CALL verifyString("link_info_by_idx_check.H5Lget_name_by_idx_f", &
+  CALL verify("link_info_by_idx_check.H5Lget_name_by_idx_f", &
        linkname(1:LEN(tmpname)), tmpname(1:LEN(tmpname)),  total_error)
-  CALL VERIFY("link_info_by_idx_check.H5Lget_name_by_idx_f", INT(size_tmp), 7, total_error)
+  CALL verify("link_info_by_idx_check.H5Lget_name_by_idx_f", INT(size_tmp), 7, total_error)
 
   CALL H5Lget_name_by_idx_f(group_id, ".", H5_INDEX_CRT_ORDER_F, H5_ITER_INC_F, INT(n,HSIZE_T), tmpname_big, error, size_tmp)
   CALL check("link_info_by_idx_check.H5Lget_name_by_idx_f", error, total_error)
-  CALL verifyString("link_info_by_idx_check.H5Lget_name_by_idx_f", &
+  CALL verify("link_info_by_idx_check.H5Lget_name_by_idx_f", &
        linkname(1:7), tmpname_big(1:7),  total_error)
-  CALL VERIFY("link_info_by_idx_check.H5Lget_name_by_idx_f", INT(size_tmp), 7, total_error)
+  CALL verify("link_info_by_idx_check.H5Lget_name_by_idx_f", INT(size_tmp), 7, total_error)
 
   ! Try with a buffer set to small
 
@@ -1521,9 +1495,6 @@ SUBROUTINE link_info_by_idx_check(group_id, linkname, n, &
 ! 
 
   SUBROUTINE test_lcpl(cleanup, fapl, total_error)
-
-  USE HDF5 ! This module contains all necessary modules
-  USE TH5_MISC
 
   IMPLICIT NONE
   INTEGER, INTENT(INOUT) :: total_error
@@ -1591,7 +1562,7 @@ SUBROUTINE link_info_by_idx_check(group_id, linkname, n, &
 ! * creation property list and is always ASCII. 
 !#define H5F_DEFAULT_CSET H5T_CSET_ASCII  -- FROM H5Fprivate.h --
 
-  CALL VERIFY("H5Lget_info_f",cset, H5T_CSET_ASCII_F,total_error)
+  CALL verify("H5Lget_info_f",cset, H5T_CSET_ASCII_F,total_error)
 
   !  Create and commit a datatype with the default LCPL 
   CALL h5tcopy_f(H5T_NATIVE_INTEGER, type_id, error)
@@ -1652,10 +1623,10 @@ SUBROUTINE link_info_by_idx_check(group_id, linkname, n, &
   DO i = 1, 2
      tmp1 = INT(dimsout(i))
      tmp2 = INT(extend_dim(i))
-     CALL VERIFY("H5Sget_simple_extent_dims", tmp1, tmp2, total_error)
+     CALL verify("H5Sget_simple_extent_dims", tmp1, tmp2, total_error)
      tmp1 = INT(maxdimsout(i))
      tmp2 = INT(dims(i))
-     CALL VERIFY("H5Sget_simple_extent_dims", tmp1, tmp2, total_error)
+     CALL verify("H5Sget_simple_extent_dims", tmp1, tmp2, total_error)
   ENDDO
 
   !  close data set 
@@ -1722,7 +1693,7 @@ SUBROUTINE link_info_by_idx_check(group_id, linkname, n, &
 
   CALL H5Pget_char_encoding_f(lcpl_id, encoding, error)
   CALL check("H5Pget_char_encoding_f", error, total_error)
-  CALL VERIFY("H5Pget_char_encoding_f", encoding, H5T_CSET_UTF8_F, total_error)
+  CALL verify("H5Pget_char_encoding_f", encoding, H5T_CSET_UTF8_F, total_error)
 
   !  Check that its character encoding is UTF-8 
   CALL H5Lget_info_f(file_id, "dataset2", &
@@ -1744,7 +1715,7 @@ SUBROUTINE link_info_by_idx_check(group_id, linkname, n, &
 
   CALL H5Lexists_f(file_id,"/dataset2_link",Lexists, error)
   CALL check("H5Lexists",error, total_error)
-  CALL verifylogical("H5Lexists", Lexists,.TRUE.,total_error)
+  CALL verify("H5Lexists", Lexists,.TRUE.,total_error)
 
   !  Check that its character encoding is ASCII 
   CALL H5Lget_info_f(file_id, "/dataset2_link", &
@@ -1834,9 +1805,6 @@ END SUBROUTINE test_lcpl
 
 SUBROUTINE objcopy(fapl, total_error)
 
-  USE HDF5 ! This module contains all necessary modules
-  USE TH5_MISC
-
   IMPLICIT NONE
   INTEGER, INTENT(INOUT) :: total_error
   INTEGER(HID_T), INTENT(IN) :: fapl
@@ -1867,7 +1835,7 @@ SUBROUTINE objcopy(fapl, total_error)
   !  Verify object copy flags 
   CALL H5Pget_copy_object_f(pid, cpy_flags, error)
   CALL check("H5Pget_copy_object_f",error, total_error)
-  CALL VERIFY("H5Pget_copy_object_f", cpy_flags, flag, total_error)
+  CALL verify("H5Pget_copy_object_f", cpy_flags, flag, total_error)
 
 !!$
 !!$  CALL test_copy_option(fcpl_src, fcpl_dst, my_fapl, H5O_COPY_WITHOUT_ATTR_FLAG,
@@ -1897,9 +1865,6 @@ END SUBROUTINE objcopy
 ! 
 
 SUBROUTINE lapl_nlinks( fapl, total_error)
-
-  USE HDF5
-  USE TH5_MISC
 
   IMPLICIT NONE
   INTEGER(HID_T), INTENT(IN) :: fapl
@@ -1972,7 +1937,7 @@ SUBROUTINE lapl_nlinks( fapl, total_error)
   nlinks = 0
   CALL H5Pget_nlinks_f(plist, nlinks, error)
   CALL check("H5Pset_nlinks_f",error,total_error)
-  CALL VERIFY("H5Pset_nlinks_f",INT(nlinks), 20, total_error)
+  CALL verify("H5Pset_nlinks_f",INT(nlinks), 20, total_error)
 
 
   ! Open object through what is normally too many soft links using
@@ -1984,7 +1949,7 @@ SUBROUTINE lapl_nlinks( fapl, total_error)
   ! Check name 
   CALL h5iget_name_f(gid, objname, buf_size, name_len, error)
   CALL check("h5iget_name_f",error,total_error)
-  CALL VerifyString("h5iget_name_f", TRIM(objname),"/soft17", total_error)
+  CALL verify("h5iget_name_f", TRIM(objname),"/soft17", total_error)
   ! Create group using soft link 
   CALL H5Gcreate_f(gid, "new_soft", gid2, error)
   CALL check("H5Gcreate_f", error, total_error)
@@ -2006,12 +1971,12 @@ SUBROUTINE lapl_nlinks( fapl, total_error)
 
   CALL H5Pget_nlinks_f(plist, nlinks, error)
   CALL check("H5Pget_nlinks_f",error,total_error)
-  CALL VERIFY("H5Pget_nlinks_f", INT(nlinks), 4, total_error)
+  CALL verify("H5Pget_nlinks_f", INT(nlinks), 4, total_error)
 
   !  Try opening through what is now too many soft links 
 
   CALL H5Oopen_f(fid,"soft5",gid,error,plist)
-  CALL VERIFY("H5Oopen_f", error, -1, total_error) ! should fail
+  CALL verify("H5Oopen_f", error, -1, total_error) ! should fail
 
   !  Open object through lesser soft link 
   CALL H5Oopen_f(fid,"soft4",gid,error,plist)
@@ -2020,7 +1985,7 @@ SUBROUTINE lapl_nlinks( fapl, total_error)
   !  Check name 
   CALL h5iget_name_f(gid, objname, buf_size, name_len, error)
   CALL check("h5iget_name_f",error,total_error)
-  CALL VerifyString("h5iget_name_f", TRIM(objname),"/soft4", total_error)
+  CALL verify("h5iget_name_f", TRIM(objname),"/soft4", total_error)
 
   !  Test other functions that should use a LAPL 
   nlinks = 20

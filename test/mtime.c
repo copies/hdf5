@@ -5,12 +5,10 @@
  *                                                                           *
  * This file is part of HDF5.  The full HDF5 copyright notice, including     *
  * terms governing use, modification, and redistribution, is contained in    *
- * the files COPYING and Copyright.html.  COPYING can be found at the root   *
- * of the source code distribution tree; Copyright.html can be found at the  *
- * root level of an installed copy of the electronic HDF5 document set and   *
- * is linked from the top-level documents page.  It can also be found at     *
- * http://hdfgroup.org/HDF5/doc/Copyright.html.  If you do not have          *
- * access to either file, you may request a copy from help@hdfgroup.org.     *
+ * the COPYING file, which can be found at the root of the source code       *
+ * distribution tree, or in https://support.hdfgroup.org/ftp/HDF5/releases.  *
+ * If you do not have access to either file, you may request a copy from     *
+ * help@hdfgroup.org.                                                        *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 /*
@@ -114,7 +112,7 @@ main(void)
         puts("    Modification times will be mantained in the file but");
         puts("    cannot be queried on this system.  See H5O_mtime_decode().");
         return 0;
-    } else if(HDfabs(HDdifftime(now, oi1.ctime)) > 60.0F) {
+    } else if(HDfabs(HDdifftime(now, oi1.ctime)) > (double)60.0F) {
         H5_FAILED();
         tm = HDlocaltime(&(oi1.ctime));
         HDstrftime((char*)buf1, sizeof buf1, "%Y-%m-%d %H:%M:%S", tm);
@@ -132,14 +130,8 @@ main(void)
     TESTING("accessing old modification time messages");
 
     {
-        char testfile[512]="";
-        char *srcdir = HDgetenv("srcdir");
+        const char *testfile = H5_get_srcdir_filename(TESTFILE1); /* Corrected test file name */
 
-        if(srcdir && ((HDstrlen(srcdir) + strlen(TESTFILE1) + 1) < sizeof(testfile))){
-            HDstrcpy(testfile, srcdir);
-            HDstrcat(testfile, "/");
-        }
-        HDstrcat(testfile, TESTFILE1);
         file = H5Fopen(testfile, H5F_ACC_RDONLY, H5P_DEFAULT);
         if(file >= 0){
             if(H5Oget_info_by_name(file, "/Dataset1", &oi1, H5P_DEFAULT) < 0)
@@ -168,14 +160,8 @@ main(void)
     TESTING("accessing new modification time messages");
 
     {
-        char testfile[512]="";
-        char *srcdir = HDgetenv("srcdir");
+        const char *testfile = H5_get_srcdir_filename(TESTFILE2); /* Corrected test file name */
 
-        if(srcdir && ((HDstrlen(srcdir) + strlen(TESTFILE2) + 1) < sizeof(testfile))){
-            HDstrcpy(testfile, srcdir);
-            HDstrcat(testfile, "/");
-        }
-        HDstrcat(testfile, TESTFILE2);
         file = H5Fopen(testfile, H5F_ACC_RDONLY, H5P_DEFAULT);
         if(file >= 0){
             if(H5Oget_info_by_name(file, "/Dataset1", &oi2, H5P_DEFAULT) < 0)

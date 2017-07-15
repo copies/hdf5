@@ -29,7 +29,7 @@ exit_code=0
 # and should have invoked as "$srcdir/bin/$progname" or
 # "bin/$progname". So, by striping bin/$program from $0,
 # we can find $srcdir.
-if [ $0 == bin/$progname ]; then
+if [ "$0" = "bin/${progname}" ]; then
     srcdir="."		# current directory
 else
     # $0 is $srdir/bin/$progname
@@ -45,7 +45,6 @@ fi
 cacheinit=$srcdir/config/cmake/cacheinit.cmake
 build_cpp_lib=-DHDF5_BUILD_CPP_LIB:BOOL=OFF	# C++ interface default off
 build_fortran=-DHDF5_BUILD_FORTRAN:BOOL=OFF	# Fortran interface default off
-enable_f2003=-DHDF5_ENABLE_F2003:BOOL=OFF	# Fortran2003 interface default off
 build_hl_lib=-DHDF5_BUILD_HL_LIB:BOOL=ON	# High Level interface default on
 build_threadsafe=-DHDF5_ENABLE_THREADSAFE:BOOL=OFF	# Threadsafe feature default off
 build_testing=-DBUILD_TESTING:BOOL=ON		# Build tests default on
@@ -80,8 +79,6 @@ Usage: $progname [<options>]
   where options are:
   --enable-fortran | --disable-fortran:
     enable or disable fortran API. Default is off.
-  --enable-fortran2003 | --disable-fortran2003:
-    enable or disable fortran2003 API. Default is off.
   --enable-cxx | --disable-cxx:
     enable or disable c++ API. Default is off.
   --enable-hl | --disable-hl:
@@ -223,12 +220,6 @@ while [ $# -gt 0 ]; do
 	--disable-fortran)
 	    build_fortran=-DHDF5_BUILD_FORTRAN:BOOL=OFF
 	    ;;
-	--enable-fortran2003)
-	    enable_f2003=-DHDF5_ENABLE_F2003:BOOL=ON
-	    ;;
-	--disable-fortran2003)
-	    enable_f2003=-DHDF5_ENABLE_F2003:BOOL=OFF
-	    ;;
 	--enable-cxx)
 	    build_cpp_lib=-DHDF5_BUILD_CPP_LIB:BOOL=ON
 	    ;;
@@ -347,7 +338,6 @@ STEP "Configure..." \
     -C $cacheinit \
     $build_cpp_lib \
     $build_fortran \
-    $enable_f2003 \
     $build_hl_lib \
     $build_threadsafe \
     $shared_lib \

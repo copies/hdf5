@@ -5,12 +5,10 @@
 *                                                                           *
 * This file is part of HDF5.  The full HDF5 copyright notice, including     *
 * terms governing use, modification, and redistribution, is contained in    *
-* the files COPYING and Copyright.html.  COPYING can be found at the root   *
-* of the source code distribution tree; Copyright.html can be found at the  *
-* root level of an installed copy of the electronic HDF5 document set and   *
-* is linked from the top-level documents page.  It can also be found at     *
-* http://hdfgroup.org/HDF5/doc/Copyright.html.  If you do not have          *
-* access to either file, you may request a copy from help@hdfgroup.org.     *
+ * the COPYING file, which can be found at the root of the source code       *
+ * distribution tree, or in https://support.hdfgroup.org/ftp/HDF5/releases.  *
+ * If you do not have access to either file, you may request a copy from     *
+ * help@hdfgroup.org.                                                        *
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 #include <stdlib.h>
@@ -300,7 +298,7 @@ static int test_dsets( void )
 
     for (i = 0; i < DIM; i++)
     {
-        if(!FLT_ABS_EQUAL(data_float_in[i],data_float_out[i])) {
+        if(!H5_FLT_ABS_EQUAL(data_float_in[i],data_float_out[i])) {
             goto out;
         }
     }
@@ -311,7 +309,7 @@ static int test_dsets( void )
 
     for (i = 0; i < DIM; i++)
     {
-        if(!FLT_ABS_EQUAL(data_float_in[i],data_float_out[i])) {
+        if(!H5_FLT_ABS_EQUAL(data_float_in[i],data_float_out[i])) {
             goto out;
         }
     }
@@ -336,7 +334,7 @@ static int test_dsets( void )
 
     for (i = 0; i < DIM; i++)
     {
-        if(!DBL_ABS_EQUAL(data_double_in[i],data_double_out[i])) {
+        if(!H5_DBL_ABS_EQUAL(data_double_in[i],data_double_out[i])) {
             goto out;
         }
     }
@@ -347,7 +345,7 @@ static int test_dsets( void )
 
     for (i = 0; i < DIM; i++)
     {
-        if(!DBL_ABS_EQUAL(data_double_in[i],data_double_out[i])) {
+        if(!H5_DBL_ABS_EQUAL(data_double_in[i],data_double_out[i])) {
             goto out;
         }
     }
@@ -959,7 +957,7 @@ static herr_t make_attributes( hid_t loc_id, const char* obj_name )
 
     for (i = 0; i < 5; i++)
     {
-        if(!FLT_ABS_EQUAL(attr_float_in[i],attr_float_out[i])) {
+        if(!H5_FLT_ABS_EQUAL(attr_float_in[i],attr_float_out[i])) {
             return -1;
         }
     }
@@ -970,7 +968,7 @@ static herr_t make_attributes( hid_t loc_id, const char* obj_name )
 
     for (i = 0; i < 5; i++)
     {
-        if(!FLT_ABS_EQUAL(attr_float_in[i],attr_float_out[i])) {
+        if(!H5_FLT_ABS_EQUAL(attr_float_in[i],attr_float_out[i])) {
             return -1;
         }
     }
@@ -1003,7 +1001,7 @@ static herr_t make_attributes( hid_t loc_id, const char* obj_name )
 
     for (i = 0; i < 5; i++)
     {
-        if(!DBL_ABS_EQUAL(attr_double_in[i],attr_double_out[i])) {
+        if(!H5_DBL_ABS_EQUAL(attr_double_in[i],attr_double_out[i])) {
             return -1;
         }
     }
@@ -1014,7 +1012,7 @@ static herr_t make_attributes( hid_t loc_id, const char* obj_name )
 
     for (i = 0; i < 5; i++)
     {
-        if(!DBL_ABS_EQUAL(attr_double_in[i],attr_double_out[i])) {
+        if(!H5_DBL_ABS_EQUAL(attr_double_in[i],attr_double_out[i])) {
             return -1;
         }
     }
@@ -1196,7 +1194,7 @@ static int test_strings(void)
     H5T_str_t   str_pad;
     H5T_cset_t  str_cset;
     H5T_class_t type_class;
-    char*   dt_str;
+    char*   dt_str = NULL;
     size_t  str_len;
 
     TESTING3("        text for string types");
@@ -1282,6 +1280,7 @@ static int test_strings(void)
       HDfree(dt_str);
       goto out;
     }
+    HDfree(dt_str);
 
     /* Length of the character buffer is smaller then needed */
     str_len = 21;
@@ -1764,17 +1763,9 @@ static int test_complicated_compound(void)
     char   *line = NULL;
     FILE   *fp = NULL;
     size_t  size = 1024;
-    char   *srcdir = getenv("srcdir"); /* the source directory */
-    char    filename[1024]="";
+    const char *filename = H5_get_srcdir_filename(INPUT_FILE);
 
     TESTING3("        text for complicated compound types");
-
-    /* compose the name of the file to open, using the srcdir, if appropriate */
-    if(srcdir) {
-        HDstrcpy(filename, srcdir);
-        HDstrcat(filename, "/");
-    }
-    HDstrcat(filename, INPUT_FILE);
 
     /* Open input file */
     fp = HDfopen(filename, "r");
@@ -1890,7 +1881,7 @@ static int test_valid_path(void)
   hid_t file_id, group;
   htri_t path_valid;
   const char *data_string_in = "test";
-  
+   
   TESTING("H5LTpath_valid");
     
   /* Create a new file using default properties. */
@@ -2074,11 +2065,11 @@ static int test_valid_path(void)
    * CHECK ABSOLUTE PATHS 
    **************************************/
 
-  if( (path_valid = H5LTpath_valid(file_id, "/", TRUE)) != FALSE) {
+  if( (path_valid = H5LTpath_valid(file_id, "/", TRUE)) != TRUE) {
     goto out;
   }
 
-  if( (path_valid = H5LTpath_valid(file_id, "/", FALSE)) != FALSE) {
+  if( (path_valid = H5LTpath_valid(file_id, "/", FALSE)) != TRUE) {
     goto out;
   }
 
@@ -2131,11 +2122,11 @@ static int test_valid_path(void)
   if( (group = H5Gopen2(file_id, "/", H5P_DEFAULT)) < 0)
     goto out;
   
-  if( (path_valid = H5LTpath_valid(group, "/", TRUE)) != FALSE) {
+  if( (path_valid = H5LTpath_valid(group, "/", TRUE)) != TRUE) {
     goto out;
   }
 
-  if( (path_valid = H5LTpath_valid(group, "/", FALSE)) != FALSE) {
+  if( (path_valid = H5LTpath_valid(group, "/", FALSE)) != TRUE) {
     goto out;
   }
 

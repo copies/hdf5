@@ -5,12 +5,10 @@
  *                                                                           *
  * This file is part of HDF5.  The full HDF5 copyright notice, including     *
  * terms governing use, modification, and redistribution, is contained in    *
- * the files COPYING and Copyright.html.  COPYING can be found at the root   *
- * of the source code distribution tree; Copyright.html can be found at the  *
- * root level of an installed copy of the electronic HDF5 document set and   *
- * is linked from the top-level documents page.  It can also be found at     *
- * http://hdfgroup.org/HDF5/doc/Copyright.html.  If you do not have          *
- * access to either file, you may request a copy from help@hdfgroup.org.     *
+ * the COPYING file, which can be found at the root of the source code       *
+ * distribution tree, or in https://support.hdfgroup.org/ftp/HDF5/releases.  *
+ * If you do not have access to either file, you may request a copy from     *
+ * help@hdfgroup.org.                                                        *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 #include <stdlib.h>
@@ -389,7 +387,7 @@ herr_t create_long_dataset(hid_t fid, const char *dsname, const char *dsidx, int
     int     rank = 4;
     int     rankds = 1;
     hsize_t dims[4]  = {DIM1_SIZE,DIM2_SIZE,DIM3_SIZE,DIM4_SIZE};
-    long    buf[DIM1_SIZE*DIM2_SIZE*DIM3_SIZE*DIM4_SIZE];
+    long    *buf;
     hsize_t s1_dim[1]  = {DIM1_SIZE};
     hsize_t s2_dim[1]  = {DIM2_SIZE};
     hsize_t s3_dim[1]  = {DIM3_SIZE};
@@ -408,6 +406,10 @@ herr_t create_long_dataset(hid_t fid, const char *dsname, const char *dsidx, int
     long    s42_wbuf[DIM4_SIZE] = {80,80};
     long    s43_wbuf[DIM4_SIZE] = {180,180};
     long    s44_wbuf[DIM4_SIZE] = {280,280};
+
+    /* Allocate buffer */
+    if(NULL == (buf = (long *)HDmalloc(sizeof(long) * DIM1_SIZE * DIM2_SIZE * DIM3_SIZE * DIM4_SIZE)))
+         return FAIL;
 
     /* make a dataset */
     if(H5LTmake_dataset_long(fid, dsname, rank, dims, buf) >= 0) {
@@ -444,6 +446,9 @@ herr_t create_long_dataset(hid_t fid, const char *dsname, const char *dsidx, int
      }
      else
          return FAIL;
+
+    HDfree(buf);
+
     return SUCCEED;
 }
 
@@ -1105,10 +1110,10 @@ herr_t test_cmp_scalename(hid_t fid, hid_t did, const char *name, const char *sc
     if((dsid = H5Dopen2(fid, name, H5P_DEFAULT)) >= 0) {
         if(H5DSis_attached(did, dsid, idx) == 1) {
             if((name_len=H5DSget_scale_name(dsid,NULL,(size_t)0)) > 0) {
-	        name_out = (char*)HDmalloc((name_len+1) * sizeof (char));
+	        name_out = (char*)HDmalloc(((size_t)name_len+1) * sizeof (char));
                 if(name_out != NULL) {
                     if(H5DSget_scale_name(dsid, name_out, (size_t)name_len+1) >= 0) {
-                        if(HDstrcmp(scalename,name_out)==0) {
+                        if(HDstrncmp(scalename, name_out, (size_t)name_len)==0) {
                             ret_value = SUCCEED;
                         }
                         HDfree(name_out);
@@ -2174,15 +2179,7 @@ static int test_foreign_scaleattached(const char *fileforeign)
     hid_t   fid = -1;
     hid_t   did = -1;
     hid_t   dsid = -1;
-    char  *srcdir = getenv("srcdir"); /* the source directory */
-    char  filename[512]="";          /* buffer to hold name of existing file */
-
-    /* compose the name of the file to open, using the srcdir, if appropriate */
-    if (srcdir) {
-        HDstrcpy(filename,srcdir);
-        HDstrcat(filename,"/");
-    }
-    HDstrcat(filename, fileforeign);
+    const char *filename = H5_get_srcdir_filename(fileforeign);
 
     TESTING2("test_foreign_scaleattached");
 
@@ -3126,7 +3123,7 @@ static int test_simple(void)
         goto out;
 
     /* allocate a  buffer */
-    name_out = (char*)HDmalloc((name_len+1) * sizeof (char));
+    name_out = (char*)HDmalloc(((size_t)name_len+1) * sizeof (char));
     if(name_out == NULL)
         goto out;
 
@@ -4868,19 +4865,9 @@ static int read_data( const char* fname,
     size_t   nelms;
     FILE     *f;
     float    val;
-    char     *srcdir = getenv("srcdir");  /* the source directory */
-    char     data_file[512];              /* buffer to hold name of existing data file */
+    const char *data_file = H5_get_srcdir_filename(fname);
 
-    HDstrcpy(data_file, "");
-    /* compose the name of the file to open, using the srcdir, if appropriate */
-    if(srcdir)
-    {
-        HDstrcpy(data_file, srcdir);
-        HDstrcat(data_file, "/");
-    }
     /* read first data file */
-    HDstrcat(data_file,fname);
-
     f = HDfopen(data_file, "r");
     if( f == NULL ) {
         printf( "Could not open file %s\n", data_file );
@@ -4888,8 +4875,16 @@ static int read_data( const char* fname,
     }
 
     for(i=0, nelms=1; i < ndims; i++) {
-        fscanf( f, "%s %u", str, &j);
-        fscanf( f, "%d",&n );
+        if(fscanf( f, "%s %u", str, &j) && HDferror(f)) {
+            printf( "fscanf error in file %s\n", data_file );
+            HDfclose(f);
+            return -1;
+        } /* end if */
+        if(fscanf( f, "%d",&n ) < 0 && HDferror(f)) {
+            printf( "fscanf error in file %s\n", data_file );
+            HDfclose(f);
+            return -1;
+        } /* end if */
         dims[i] = (hsize_t)n;
         nelms *= (size_t)n;
     }
@@ -4903,7 +4898,11 @@ static int read_data( const char* fname,
     }
 
     for(j = 0; j < nelms; j++) {
-        fscanf( f, "%f",&val );
+        if(fscanf( f, "%f",&val ) < 0 && HDferror(f)) {
+            printf( "fscanf error in file %s\n", data_file );
+            HDfclose(f);
+            return -1;
+        } /* end if */
         (*buf)[j] = val;
     }
     HDfclose(f);

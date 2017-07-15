@@ -5,12 +5,10 @@
  *                                                                           *
  * This file is part of HDF5.  The full HDF5 copyright notice, including     *
  * terms governing use, modification, and redistribution, is contained in    *
- * the files COPYING and Copyright.html.  COPYING can be found at the root   *
- * of the source code distribution tree; Copyright.html can be found at the  *
- * root level of an installed copy of the electronic HDF5 document set and   *
- * is linked from the top-level documents page.  It can also be found at     *
- * http://hdfgroup.org/HDF5/doc/Copyright.html.  If you do not have          *
- * access to either file, you may request a copy from help@hdfgroup.org.     *
+ * the COPYING file, which can be found at the root of the source code       *
+ * distribution tree, or in https://support.hdfgroup.org/ftp/HDF5/releases.  *
+ * If you do not have access to either file, you may request a copy from     *
+ * help@hdfgroup.org.                                                        *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 /* Programmer:  Robb Matzke <matzke@llnl.gov>
@@ -20,7 +18,8 @@
  *		uninitialized data points of a dataset.
  */
 
-#define H5O_PACKAGE		/*suppress error about including H5Opkg	  */
+#include "H5Omodule.h"          /* This source code file is part of the H5O module */
+
 
 #include "H5private.h"		/* Generic Functions			*/
 #include "H5Dprivate.h"		/* Datasets				*/
@@ -188,7 +187,7 @@ H5O_fill_new_decode(H5F_t H5_ATTR_UNUSED *f, hid_t H5_ATTR_UNUSED dxpl_id, H5O_t
     unsigned H5_ATTR_UNUSED mesg_flags, unsigned H5_ATTR_UNUSED *ioflags, const uint8_t *p)
 {
     H5O_fill_t	*fill = NULL;
-    void	*ret_value;
+    void *ret_value = NULL;     /* Return value */
 
     FUNC_ENTER_NOAPI_NOINIT
 
@@ -301,8 +300,8 @@ static void *
 H5O_fill_old_decode(H5F_t H5_ATTR_UNUSED *f, hid_t H5_ATTR_UNUSED dxpl_id, H5O_t H5_ATTR_UNUSED *open_oh,
     unsigned H5_ATTR_UNUSED mesg_flags, unsigned H5_ATTR_UNUSED *ioflags, const uint8_t *p)
 {
-    H5O_fill_t *fill = NULL;		/* Decoded fill value message */
-    void *ret_value;                    /* Return value */
+    H5O_fill_t *fill = NULL;	/* Decoded fill value message */
+    void *ret_value = NULL;     /* Return value */
 
     FUNC_ENTER_NOAPI_NOINIT
 
@@ -494,7 +493,7 @@ H5O_fill_copy(const void *_src, void *_dst)
 {
     const H5O_fill_t	*src = (const H5O_fill_t *)_src;
     H5O_fill_t		*dst = (H5O_fill_t *)_dst;
-    void		*ret_value;
+    void		*ret_value = NULL;      /* Return value */
 
     FUNC_ENTER_NOAPI_NOINIT
 
@@ -526,7 +525,7 @@ H5O_fill_copy(const void *_src, void *_dst)
             H5T_path_t *tpath;      /* Conversion information */
 
             /* Set up type conversion function */
-            if(NULL == (tpath = H5T_path_find(src->type, dst->type, NULL, NULL, H5AC_ind_dxpl_id, FALSE)))
+            if(NULL == (tpath = H5T_path_find(src->type, dst->type, NULL, NULL, H5AC_noio_dxpl_id, FALSE)))
                 HGOTO_ERROR(H5E_OHDR, H5E_UNSUPPORTED, NULL, "unable to convert between src and dst data types")
 
             /* If necessary, convert fill value datatypes (which copies VL components, etc.) */
@@ -554,7 +553,7 @@ H5O_fill_copy(const void *_src, void *_dst)
                 } /* end if */
 
                 /* Convert fill value */
-                if(H5T_convert(tpath, src_id, dst_id, (size_t)1, (size_t)0, (size_t)0, dst->buf, bkg_buf, H5AC_ind_dxpl_id) < 0) {
+                if(H5T_convert(tpath, src_id, dst_id, (size_t)1, (size_t)0, (size_t)0, dst->buf, bkg_buf, H5AC_noio_dxpl_id) < 0) {
                     H5I_dec_ref(src_id);
                     H5I_dec_ref(dst_id);
                     if(bkg_buf)
@@ -611,7 +610,7 @@ static size_t
 H5O_fill_new_size(const H5F_t H5_ATTR_UNUSED *f, const void *_fill)
 {
     const H5O_fill_t	*fill = (const H5O_fill_t *)_fill;
-    size_t		ret_value;
+    size_t		ret_value = 0;          /* Return value */
 
     FUNC_ENTER_NOAPI_NOINIT_NOERR
 
@@ -708,7 +707,7 @@ H5O_fill_reset_dyn(H5O_fill_t *fill)
                 HGOTO_ERROR(H5E_OHDR, H5E_CANTCREATE, FAIL, "can't create scalar dataspace")
 
             /* Reclaim any variable length components of the fill value */
-            if(H5D_vlen_reclaim(fill_type_id, fill_space, H5P_DATASET_XFER_DEFAULT, fill->buf) < 0) {
+            if(H5D_vlen_reclaim(fill_type_id, fill_space, H5AC_noio_dxpl_id, fill->buf) < 0) {
                 H5S_close(fill_space);
                 HGOTO_ERROR(H5E_OHDR, H5E_BADITER, FAIL, "unable to reclaim variable-length fill value data")
             } /* end if */
@@ -890,7 +889,7 @@ H5O_fill_debug(H5F_t H5_ATTR_UNUSED *f, hid_t H5_ATTR_UNUSED dxpl_id, const void
     else
 	fprintf(stream, "<dataset type>\n");
 
-    FUNC_LEAVE_NOAPI(SUCCEED);
+    FUNC_LEAVE_NOAPI(SUCCEED)
 } /* end H5O_fill_debug() */
 
 
@@ -993,7 +992,7 @@ done:
     if(bkg)
         H5MM_xfree(bkg);
 
-    FUNC_LEAVE_NOAPI(ret_value);
+    FUNC_LEAVE_NOAPI(ret_value)
 } /* end H5O_fill_convert() */
 
 

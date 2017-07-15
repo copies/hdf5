@@ -5,12 +5,10 @@
 *                                                                           *
 * This file is part of HDF5.  The full HDF5 copyright notice, including     *
 * terms governing use, modification, and redistribution, is contained in    *
-* the files COPYING and Copyright.html.  COPYING can be found at the root   *
-* of the source code distribution tree; Copyright.html can be found at the  *
-* root level of an installed copy of the electronic HDF5 document set and   *
-* is linked from the top-level documents page.  It can also be found at     *
-* http://hdfgroup.org/HDF5/doc/Copyright.html.  If you do not have          *
-* access to either file, you may request a copy from help@hdfgroup.org.     *
+ * the COPYING file, which can be found at the root of the source code       *
+ * distribution tree, or in https://support.hdfgroup.org/ftp/HDF5/releases.  *
+ * If you do not have access to either file, you may request a copy from     *
+ * help@hdfgroup.org.                                                        *
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 #include "H5private.h"
@@ -71,9 +69,7 @@ hsize_t diff_dataset( hid_t file1_id,
     if((dcpl1 = H5Dget_create_plist(did1)) < 0)
         goto error;
     if((dcpl2 = H5Dget_create_plist(did2)) < 0)
-    {
         goto error;
-    }
 
     /*-------------------------------------------------------------------------
     * check if the dataset creation property list has filters that
@@ -91,6 +87,9 @@ hsize_t diff_dataset( hid_t file1_id,
             obj2_name,
             options);
     }
+    else
+        goto error;
+
     /*-------------------------------------------------------------------------
     * close
     *-------------------------------------------------------------------------
@@ -191,6 +190,10 @@ hsize_t diff_datasetid( hid_t did1,
     hid_t      f_tid2=-1;
     hid_t      m_tid1=-1;
     hid_t      m_tid2=-1;
+    hid_t      dcpl1 = -1;
+    hid_t      dcpl2 = -1;
+    H5D_layout_t     stl1 = -1;
+    H5D_layout_t     stl2 = -1;
     size_t     m_size1;
     size_t     m_size2;
     H5T_sign_t sign1;
@@ -218,6 +221,7 @@ hsize_t diff_datasetid( hid_t did1,
     int        i;
     unsigned int  vl_data = 0;         /*contains VL datatypes */
 
+    h5difftrace("diff_datasetid start\n");
     /* Get the dataspace handle */
     if ( (sid1 = H5Dget_space(did1)) < 0 )
         goto error;
@@ -259,20 +263,44 @@ hsize_t diff_datasetid( hid_t did1,
         goto error;
     }
 
+
+    /*-------------------------------------------------------------------------
+    * get the storage layout type
+    *-------------------------------------------------------------------------
+    */
+    if((dcpl1 = H5Dget_create_plist(did1)) < 0)
+        goto error;
+    if((dcpl2 = H5Dget_create_plist(did2)) < 0)
+        goto error;
+
+    if((stl1 = H5Pget_layout(dcpl1)) < 0)
+        goto error;
+    if((stl2 = H5Pget_layout(dcpl2)) < 0)
+        goto error;
+
     /*-------------------------------------------------------------------------
     * check for empty datasets
     *-------------------------------------------------------------------------
     */
+    h5difftrace("check for empty datasets\n");
 
     storage_size1=H5Dget_storage_size(did1);
     storage_size2=H5Dget_storage_size(did2);
 
     if (storage_size1==0 || storage_size2==0)
     {
-        if ( (options->m_verbose||options->m_list_not_cmp) && obj1_name && obj2_name)
-            parallel_print("Not comparable: <%s> or <%s> is an empty dataset\n", obj1_name, obj2_name);
-        can_compare=0;
-        options->not_cmp=1;
+        if (stl1==H5D_VIRTUAL || stl2==H5D_VIRTUAL)
+        {
+            if ( (options->m_verbose||options->m_list_not_cmp) && obj1_name && obj2_name)
+                parallel_print("Warning: <%s> or <%s> is a virtual dataset\n", obj1_name, obj2_name);
+        }
+        else
+        {
+            if ( (options->m_verbose||options->m_list_not_cmp) && obj1_name && obj2_name)
+                parallel_print("Not comparable: <%s> or <%s> is an empty dataset\n", obj1_name, obj2_name);
+            can_compare=0;
+            options->not_cmp=1;
+        }
     }
 
     /*-------------------------------------------------------------------------
@@ -300,6 +328,7 @@ hsize_t diff_datasetid( hid_t did1,
     * memory type and sizes
     *-------------------------------------------------------------------------
     */
+    h5difftrace("check for memory type and sizes\n");
     if ((m_tid1=h5tools_get_native_type(f_tid1)) < 0)
         goto error;
 
@@ -315,16 +344,18 @@ hsize_t diff_datasetid( hid_t did1,
     */
     if (can_compare)
     {
+        h5difftrace("can_compare for sign\n");
         sign1=H5Tget_sign(m_tid1);
         sign2=H5Tget_sign(m_tid2);
         if ( sign1 != sign2 )
         {
+            h5difftrace("sign1 != sign2\n");
             if ((options->m_verbose||options->m_list_not_cmp) && obj1_name && obj2_name)
             {
                 parallel_print("Not comparable: <%s> has sign %s ", obj1_name, get_sign(sign1));
                 parallel_print("and <%s> has sign %s\n", obj2_name, get_sign(sign2));
             }
-    
+
             can_compare=0;
             options->not_cmp=1;
         }
@@ -341,6 +372,7 @@ hsize_t diff_datasetid( hid_t did1,
     */
     if(can_compare) /* it is possible to compare */
     {
+        h5difftrace("can_compare attempt\n");
 
         /*-----------------------------------------------------------------
         * get number of elements
@@ -360,9 +392,10 @@ hsize_t diff_datasetid( hid_t did1,
         * "upgrade" the smaller memory size
         *------------------------------------------------------------------
         */
+        h5difftrace("upgrade the smaller memory size?\n");
 
         if (FAIL == match_up_memsize (f_tid1, f_tid2,
-                                      &m_tid1, &m_tid2, 
+                                      &m_tid1, &m_tid2,
                                       &m_size1, &m_size2))
             goto error;
 
@@ -384,6 +417,7 @@ hsize_t diff_datasetid( hid_t did1,
         } /* end if */
 
         if(buf1 != NULL && buf2 != NULL) {
+            h5difftrace("buf1 != NULL && buf2 != NULL\n");
             if(H5Dread(did1, m_tid1, H5S_ALL, H5S_ALL, H5P_DEFAULT, buf1) < 0)
                 goto error;
             if(H5Dread(did2, m_tid2, H5S_ALL, H5S_ALL, H5P_DEFAULT, buf2) < 0)
@@ -504,6 +538,7 @@ hsize_t diff_datasetid( hid_t did1,
      * close
      *-------------------------------------------------------------------------
      */
+    h5difftrace("compare attributes?\n");
 
     /* free */
     if(buf1 != NULL) {
@@ -531,6 +566,7 @@ hsize_t diff_datasetid( hid_t did1,
         H5Tclose(m_tid1);
         H5Tclose(m_tid2);
     } H5E_END_TRY;
+    h5difftrace("diff_datasetid finish\n");
 
     return nfound;
 
@@ -581,6 +617,7 @@ error:
         H5Tclose(m_tid2);
         /* enable error reporting */
     } H5E_END_TRY;
+    h5difftrace("diff_datasetid errored\n");
 
     return nfound;
 }
@@ -676,31 +713,30 @@ int diff_can_type( hid_t       f_tid1, /* file data type */
     HDassert(tclass1==tclass2);
     switch (tclass1)
     {
-    case H5T_INTEGER:
-    case H5T_FLOAT:
-    case H5T_COMPOUND:
-    case H5T_STRING:
-    case H5T_ARRAY:
-    case H5T_BITFIELD:
-    case H5T_OPAQUE:
-    case H5T_ENUM:
-    case H5T_VLEN:
-    case H5T_REFERENCE:
+        case H5T_TIME:
+            if ( (options->m_verbose||options->m_list_not_cmp) && obj1_name && obj2_name) {
+                parallel_print("Not comparable: <%s> and <%s> are of class %s\n",
+                    obj1_name,obj2_name,get_class(tclass2) );
+            } /* end if */
+            can_compare = 0;
+            options->not_cmp = 1;
+            return can_compare;
 
-        break;
-
-    default: /*H5T_TIME */
-
-
-        if ( (options->m_verbose||options->m_list_not_cmp) && obj1_name && obj2_name)
-        {
-            parallel_print("Not comparable: <%s> and <%s> are of class %s\n",
-                obj1_name,obj2_name,get_class(tclass2) );
-        }
-        can_compare = 0;
-        options->not_cmp = 1;
-        return can_compare;
-    }
+        case H5T_INTEGER:
+        case H5T_FLOAT:
+        case H5T_COMPOUND:
+        case H5T_STRING:
+        case H5T_ARRAY:
+        case H5T_BITFIELD:
+        case H5T_OPAQUE:
+        case H5T_ENUM:
+        case H5T_VLEN:
+        case H5T_REFERENCE:
+        case H5T_NO_CLASS:
+        case H5T_NCLASSES:
+        default:
+            break;
+    } /* end switch */
 
     /*-------------------------------------------------------------------------
     * check for equal file datatype; warning only

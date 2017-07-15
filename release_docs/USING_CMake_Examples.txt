@@ -21,8 +21,8 @@ I. Preconditions
 ========================================================================
 
    1. We suggest you obtain the latest CMake for windows from the Kitware
-      web site. The HDF5 1.8.x product requires a minimum CMake version
-      of 3.1.0.
+      web site. The HDF5 1.10.x product requires a minimum CMake version
+      of 3.2.2.
 
    2. You have installed the HDF5 library built with CMake, by executing
       the HDF Install Utility (the *.msi file in the binary package for
@@ -38,7 +38,7 @@ II. Building HDF5 Examples with CMake
 
 Files in the HDF5 install directory:
        HDF5Examples folder
-       HDF518_Examples.cmake
+       HDF5_Examples.cmake
 
 Default installation process:
        Create a directory to run the examples, i.e. \test_hdf5.
@@ -49,16 +49,16 @@ Default installation process:
        The default installation folder is defined as "@CMAKE_INSTALL_PREFIX@".
            It can be changed with the INSTALLDIR script option.
        The default ctest configuration is defined as "Release". It can be changed
-           with the CTEST_BUILD_CONFIGURATION script option. Note that this must
+           with the CTEST_CONFIGURATION_TYPE script option. Note that this must
            be the same as the value used with the -C command line option.
        The default build configuration is defined to build and use static libraries.
-           Shared libraries can be used with the STATIC_LIBRARIES script option set to "NO".
-       Other options can be changed by editing the HDF518_Examples.cmake file.
+           Shared libraries can be used with the STATIC_ONLY script option set to "NO".
+       Other options can be changed by editing the HDF5_Examples.cmake file.
 
        If the defaults are okay, execute from this directory:
-           ctest -S HDF518_Examples.cmake -C Release -V -O test.log
+           ctest -S HDF5_Examples.cmake -C Release -V -O test.log
        If the defaults need change, execute from this directory:
-           ctest -S HDF518_Examples.cmake,CTEST_SOURCE_NAME=MyExamples,INSTALLDIR=MyLocation -C Release -V -O test.log
+           ctest -S HDF5_Examples.cmake,CTEST_SOURCE_NAME=MyExamples,INSTALLDIR=MyLocation -C Release -V -O test.log
 
     When executed, the ctest script will save the results to the log file, test.log, as
     indicated by the ctest command. If you wish the to see more build and test information,
@@ -67,7 +67,7 @@ Default installation process:
 
 
 ========================================================================
-III. Other changes to the HDF518_Examples.cmake file
+III. Other changes to the HDF5_Examples.cmake file
 ========================================================================
 
 Line 45-48: uncomment to use a source tarball or zipfile;

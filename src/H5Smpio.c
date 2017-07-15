@@ -5,12 +5,10 @@
  *                                                                           *
  * This file is part of HDF5.  The full HDF5 copyright notice, including     *
  * terms governing use, modification, and redistribution, is contained in    *
- * the files COPYING and Copyright.html.  COPYING can be found at the root   *
- * of the source code distribution tree; Copyright.html can be found at the  *
- * root level of an installed copy of the electronic HDF5 document set and   *
- * is linked from the top-level documents page.  It can also be found at     *
- * http://hdfgroup.org/HDF5/doc/Copyright.html.  If you do not have          *
- * access to either file, you may request a copy from help@hdfgroup.org.     *
+ * the COPYING file, which can be found at the root of the source code       *
+ * distribution tree, or in https://support.hdfgroup.org/ftp/HDF5/releases.  *
+ * If you do not have access to either file, you may request a copy from     *
+ * help@hdfgroup.org.                                                        *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 /*
@@ -22,7 +20,7 @@
  *		I didn't make them portable.
  */
 
-#define H5S_PACKAGE		/*suppress error about including H5Spkg	  */
+#include "H5Smodule.h"          /* This source code file is part of the H5S module */
 
 
 #include "H5private.h"		/* Generic Functions			*/
@@ -168,18 +166,23 @@ H5S_mpio_create_point_datatype (size_t elmt_size, hsize_t num_points,
     if(MPI_SUCCESS != (mpi_code = MPI_Type_contiguous((int)elmt_size, MPI_BYTE, &elmt_type)))
         HMPI_GOTO_ERROR(FAIL, "MPI_Type_contiguous failed", mpi_code)
     elmt_type_created = TRUE;
-    
+
+#if MPI_VERSION >= 3
+    /* Create an MPI datatype for the whole point selection */
+    if(MPI_SUCCESS != (mpi_code = MPI_Type_create_hindexed_block((int)num_points, 1, disp, elmt_type, new_type)))
+        HMPI_GOTO_ERROR(FAIL, "MPI_Type_create_indexed_block failed", mpi_code)
+#else
     /* Allocate block sizes for MPI datatype call */
     if(NULL == (blocks = (int *)H5MM_malloc(sizeof(int) * num_points)))
         HGOTO_ERROR(H5E_DATASPACE, H5E_CANTALLOC, FAIL, "can't allocate array of blocks")
 
-    /* Would be nice to have Create_Hindexed_block to avoid this array of all ones */
     for(u = 0; u < num_points; u++)
         blocks[u] = 1;
 
     /* Create an MPI datatype for the whole point selection */
     if(MPI_SUCCESS != (mpi_code = MPI_Type_create_hindexed((int)num_points, blocks, disp, elmt_type, new_type)))
         HMPI_GOTO_ERROR(FAIL, "MPI_Type_create_indexed_block failed", mpi_code)
+#endif
 
     /* Commit MPI datatype for later use */
     if(MPI_SUCCESS != (mpi_code = MPI_Type_commit(new_type)))
@@ -357,8 +360,6 @@ H5S_mpio_permute_type(const H5S_t *space, size_t elmt_size, hsize_t **permute,
     MPI_Aint *disp = NULL;      /* Datatype displacement for each point*/
     H5S_sel_iter_t sel_iter;    /* Selection iteration info */
     hbool_t sel_iter_init = FALSE;      /* Selection iteration info has been initialized */
-    hsize_t off[H5D_IO_VECTOR_SIZE];    /* Array to store sequence offsets */
-    size_t len[H5D_IO_VECTOR_SIZE];     /* Array to store sequence lengths */
     hssize_t snum_points;       /* Signed number of elements in selection */
     hsize_t num_points;         /* Number of points in the selection */
     size_t max_elem;            /* Maximum number of elements allowed in sequences */

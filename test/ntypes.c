@@ -5,12 +5,10 @@
  *                                                                           *
  * This file is part of HDF5.  The full HDF5 copyright notice, including     *
  * terms governing use, modification, and redistribution, is contained in    *
- * the files COPYING and Copyright.html.  COPYING can be found at the root   *
- * of the source code distribution tree; Copyright.html can be found at the  *
- * root level of an installed copy of the electronic HDF5 document set and   *
- * is linked from the top-level documents page.  It can also be found at     *
- * http://hdfgroup.org/HDF5/doc/Copyright.html.  If you do not have          *
- * access to either file, you may request a copy from help@hdfgroup.org.     *
+ * the COPYING file, which can be found at the root of the source code       *
+ * distribution tree, or in https://support.hdfgroup.org/ftp/HDF5/releases.  *
+ * If you do not have access to either file, you may request a copy from     *
+ * help@hdfgroup.org.                                                        *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 /*
@@ -2188,7 +2186,7 @@ test_refer_dtype(hid_t file)
         TEST_ERROR;
 
     /* Open datatype object */
-    if((tid1 = H5Rdereference(dataset, H5R_OBJECT, rbuf)) < 0)
+    if((tid1 = H5Rdereference2(dataset, H5P_DEFAULT, H5R_OBJECT, rbuf)) < 0)
         TEST_ERROR;
 
     /* Verify correct datatype */
@@ -2373,7 +2371,7 @@ test_refer_dtype2(hid_t file)
         TEST_ERROR;
 
     /* Try to open objects */
-    if((dset2 = H5Rdereference(dset1, H5R_DATASET_REGION, &rbuf)) < 0)
+    if((dset2 = H5Rdereference2(dset1, H5P_DEFAULT, H5R_DATASET_REGION, &rbuf)) < 0)
         TEST_ERROR;
 
     /* Check what H5Rget_obj_type2 function returns */

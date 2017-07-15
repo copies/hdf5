@@ -5,12 +5,10 @@
  *                                                                           *
  * This file is part of HDF5.  The full HDF5 copyright notice, including     *
  * terms governing use, modification, and redistribution, is contained in    *
- * the files COPYING and Copyright.html.  COPYING can be found at the root   *
- * of the source code distribution tree; Copyright.html can be found at the  *
- * root level of an installed copy of the electronic HDF5 document set and   *
- * is linked from the top-level documents page.  It can also be found at     *
- * http://hdfgroup.org/HDF5/doc/Copyright.html.  If you do not have          *
- * access to either file, you may request a copy from help@hdfgroup.org.     *
+ * the COPYING file, which can be found at the root of the source code       *
+ * distribution tree, or in https://support.hdfgroup.org/ftp/HDF5/releases.  *
+ * If you do not have access to either file, you may request a copy from     *
+ * help@hdfgroup.org.                                                        *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 /***********************************************************
@@ -177,24 +175,18 @@ test_h5s_basic(void)
      * the instructions in space_overflow.c for regenerating the th5s.h5 file.
      */
     {
-    char testfile[512]="";
-    char *srcdir = HDgetenv("srcdir");
-    if (srcdir && ((HDstrlen(srcdir) + HDstrlen(TESTFILE) + 1) < sizeof(testfile))){
-	HDstrcpy(testfile, srcdir);
-	HDstrcat(testfile, "/");
-    }
-    HDstrcat(testfile, TESTFILE);
+    const char *testfile = H5_get_srcdir_filename(TESTFILE); /* Corrected test file name */
+
     fid1 = H5Fopen(testfile, H5F_ACC_RDONLY, H5P_DEFAULT);
     CHECK_I(fid1, "H5Fopen");
     if (fid1 >= 0){
-	dset1 = H5Dopen2(fid1, "dset", H5P_DEFAULT);
-	VERIFY(dset1, FAIL, "H5Dopen2");
-	ret = H5Fclose(fid1);
-	CHECK_I(ret, "H5Fclose");
+        dset1 = H5Dopen2(fid1, "dset", H5P_DEFAULT);
+        VERIFY(dset1, FAIL, "H5Dopen2");
+        ret = H5Fclose(fid1);
+        CHECK_I(ret, "H5Fclose");
     }
     else
-	printf("***cannot open the pre-created H5S_MAX_RANK test file (%s)\n",
-	    testfile);
+        printf("***cannot open the pre-created H5S_MAX_RANK test file (%s)\n", testfile);
     }
 
     /* Verify that incorrect dimensions don't work */
@@ -557,21 +549,21 @@ test_h5s_zero_dim(void)
     MESSAGE(5, ("Testing Dataspace with zero dimension size\n"));
 
     /* Initialize the data */
-    for(i=0; i<SPACE1_DIM2; i++)
-        for(j=0; j<SPACE1_DIM3; j++) {
-            wdata[i][j] = i + j;
+    for(i = 0; i < SPACE1_DIM2; i++)
+        for(j = 0; j < SPACE1_DIM3; j++) {
+            wdata[i][j] = (int)(i + j);
             rdata[i][j] = 7;
-            wdata_short[i][j] = i + j;
+            wdata_short[i][j] = (short)(i + j);
             rdata_short[i][j] = 7;
         }
 
-    for(i=0; i<SPACE1_DIM1; i++)
-        for(j=0; j<SPACE1_DIM2; j++)
-            for(k=0; k<SPACE1_DIM3; k++)
-                wdata_real[i][j][k] = i + j + k;
+    for(i = 0; i < SPACE1_DIM1; i++)
+        for(j = 0; j < SPACE1_DIM2; j++)
+            for(k = 0; k < SPACE1_DIM3; k++)
+                wdata_real[i][j][k] = (int)(i + j + k);
 
     /* Test with different space allocation times */
-    for(alloc_time = H5D_ALLOC_TIME_EARLY; alloc_time <= H5D_ALLOC_TIME_INCR; alloc_time++) {
+    for(alloc_time = H5D_ALLOC_TIME_EARLY; alloc_time <= H5D_ALLOC_TIME_INCR; H5_INC_ENUM(H5D_alloc_time_t, alloc_time)) {
 
         /* Make sure we can create the space with the dimension size 0 (starting from v1.8.7).
          * The dimension doesn't need to be unlimited. */
@@ -1177,6 +1169,7 @@ test_h5s_encode(void)
     H5S_sel_type        sel_type;
     H5S_class_t         space_type;
     hssize_t            nblocks;
+    hid_t		ret_id;		/* Generic hid_t return value	*/
     herr_t		ret;		/* Generic return value		*/
 
     /* Output message about test being performed */
@@ -1201,9 +1194,9 @@ test_h5s_encode(void)
 
     /* Try decoding bogus buffer */
     H5E_BEGIN_TRY {
-	ret = H5Sdecode(sbuf);
+	ret_id = H5Sdecode(sbuf);
     } H5E_END_TRY;
-    VERIFY(ret, FAIL, "H5Sdecode");
+    VERIFY(ret_id, FAIL, "H5Sdecode");
 
     ret = H5Sencode(sid1, sbuf, &sbuf_size);
     CHECK(ret, FAIL, "H5Sencode");
@@ -1586,7 +1579,7 @@ test_h5s_compound_scalar_read(void)
     if(HDmemcmp(&space4_data,&rdata,sizeof(struct space4_struct))) {
         printf("scalar data different: space4_data.c1=%c, read_data4.c1=%c\n",space4_data.c1,rdata.c1);
         printf("scalar data different: space4_data.u=%u, read_data4.u=%u\n",space4_data.u,rdata.u);
-        printf("scalar data different: space4_data.f=%f, read_data4.f=%f\n",space4_data.f,rdata.f);
+        printf("scalar data different: space4_data.f=%f, read_data4.f=%f\n",(double)space4_data.f,(double)rdata.f);
         TestErrPrintf("scalar data different: space4_data.c1=%c, read_data4.c1=%c\n",space4_data.c1,rdata.c2);
      } /* end if */
 
@@ -1652,7 +1645,7 @@ test_h5s_chunk(void)
     /* Initialize float array */
     for(i = 0; i < 50000; i++)
         for(j = 0; j < 3; j++)
-            chunk_data_flt[i][j] = (float)((i + 1) * 2.5F - j * 100.3F);
+            chunk_data_flt[i][j] = (float)(i + 1) * 2.5F - (float)j * 100.3F;
 
     status = H5Dwrite(dsetID, H5T_NATIVE_FLOAT, H5S_ALL, H5S_ALL, H5P_DEFAULT, chunk_data_flt);
     CHECK(status, FAIL, "H5Dwrite");
@@ -1688,8 +1681,8 @@ test_h5s_chunk(void)
     for(i=0; i<50000; i++) {
         for(j=0; j<3; j++) {
             /* Check if the two values are within 0.001% range. */
-            if(!DBL_REL_EQUAL(chunk_data_dbl[i][j], chunk_data_flt[i][j], 0.00001F))
-                TestErrPrintf("%u: chunk_data_dbl[%d][%d]=%e, chunk_data_flt[%d][%d]=%e\n", (unsigned)__LINE__, i, j, chunk_data_dbl[i][j], i, j, chunk_data_flt[i][j]);
+            if(!H5_DBL_REL_EQUAL(chunk_data_dbl[i][j], (double)chunk_data_flt[i][j], (double)0.00001F))
+                TestErrPrintf("%u: chunk_data_dbl[%d][%d]=%e, chunk_data_flt[%d][%d]=%e\n", (unsigned)__LINE__, i, j, chunk_data_dbl[i][j], i, j, (double)chunk_data_flt[i][j]);
         } /* end for */
     } /* end for */
 } /* test_h5s_chunk() */

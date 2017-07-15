@@ -15,12 +15,10 @@
 !                                                                             *
 !   This file is part of HDF5.  The full HDF5 copyright notice, including     *
 !   terms governing use, modification, and redistribution, is contained in    *
-!   the files COPYING and Copyright.html.  COPYING can be found at the root   *
-!   of the source code distribution tree; Copyright.html can be found at the  *
-!   root level of an installed copy of the electronic HDF5 document set and   *
-!   is linked from the top-level documents page.  It can also be found at     *
-!   http://hdfgroup.org/HDF5/doc/Copyright.html.  If you do not have          *
-!   access to either file, you may request a copy from help@hdfgroup.org.     *
+!   the COPYING file, which can be found at the root of the source code       *
+!   distribution tree, or in https://support.hdfgroup.org/ftp/HDF5/releases.  *
+!   If you do not have access to either file, you may request a copy from     *
+!   help@hdfgroup.org.                                                        *
 ! * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 !
 !*****
@@ -31,7 +29,7 @@
 MODULE visit_cb
 
   USE HDF5 
-  USE ISO_C_BINDING
+  USE, INTRINSIC :: ISO_C_BINDING
   
   IMPLICIT NONE
 
@@ -53,7 +51,7 @@ MODULE visit_cb
   !
   ! Object visit structs
   TYPE, bind(c) :: obj_visit_t
-     CHARACTER(LEN=1), DIMENSION(1:180) :: path   ! Path to object
+     CHARACTER(KIND=C_CHAR), DIMENSION(1:180) :: path   ! Path to object
      INTEGER :: type_obj ! type of object
   END TYPE obj_visit_t
 

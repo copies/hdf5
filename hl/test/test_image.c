@@ -5,12 +5,10 @@
 *                                                                           *
 * This file is part of HDF5.  The full HDF5 copyright notice, including     *
 * terms governing use, modification, and redistribution, is contained in    *
-* the files COPYING and Copyright.html.  COPYING can be found at the root   *
-* of the source code distribution tree; Copyright.html can be found at the  *
-* root level of an installed copy of the electronic HDF5 document set and   *
-* is linked from the top-level documents page.  It can also be found at     *
-* http://hdfgroup.org/HDF5/doc/Copyright.html.  If you do not have          *
-* access to either file, you may request a copy from help@hdfgroup.org.     *
+ * the COPYING file, which can be found at the root of the source code       *
+ * distribution tree, or in https://support.hdfgroup.org/ftp/HDF5/releases.  *
+ * If you do not have access to either file, you may request a copy from     *
+ * help@hdfgroup.org.                                                        *
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 #include <limits.h>
@@ -540,13 +538,12 @@ static int test_generate(void)
 {
     hid_t    fid;
     hsize_t  pal_dims[2] = { 256, 3 };
-    float    *data;
+    float    *data = NULL;
     int      imax, jmax, kmax;
     int      n_elements;
     float    valex, xmin, xmax, value;
     FILE     *f = NULL;
-    char     *srcdir = getenv("srcdir"); /* the source directory */
-    char     data_file[512]="";          /* buffer to hold name of existing data file */
+    const char *data_file = H5_get_srcdir_filename(DATA_FILE4);
     int      i;
     int      retval = FAIL;
 
@@ -555,17 +552,6 @@ static int test_generate(void)
         goto out;
 
     printf("Testing read and process data and make indexed images\n");
-
-    /*-------------------------------------------------------------------------
-    * compose the name of the file to open, using the srcdir, if appropriate
-    *-------------------------------------------------------------------------
-    */
-    if ( srcdir )
-    {
-        HDstrcpy(data_file, srcdir);
-        HDstrcat(data_file, "/");
-    }
-    HDstrcat(data_file,DATA_FILE4);
 
     /*-------------------------------------------------------------------------
     * read data; the file data format is described below
@@ -615,8 +601,14 @@ static int test_generate(void)
     */
 
 
-    fscanf( f, "%d %d %d", &imax, &jmax, &kmax );
-    fscanf( f, "%f %f %f", &valex, &xmin, &xmax );
+    if(fscanf( f, "%d %d %d", &imax, &jmax, &kmax ) < 0 && HDferror(f)) {
+        printf( "fscanf error in file %s.\n", data_file );
+        goto out;
+    } /* end if */
+    if(fscanf( f, "%f %f %f", &valex, &xmin, &xmax ) < 0 && HDferror(f)) {
+        printf( "fscanf error in file %s.\n", data_file );
+        goto out;
+    } /* end if */
 
     /* Sanity check on scanned-in values */
     if(imax < 1 || jmax < 1 || kmax < 1)
@@ -645,7 +637,10 @@ static int test_generate(void)
 
     for ( i = 0; i < n_elements; i++ )
     {
-        fscanf( f, "%f ", &value );
+        if(fscanf( f, "%f ", &value ) < 0 && HDferror(f)) {
+            printf( "fscanf error in file %s.\n", data_file );
+            goto out;
+        } /* end if */
         data[i] = value;
     }
     HDfclose(f);
@@ -806,12 +801,35 @@ static int read_data(const char* fname, /*IN*/
         goto out;
     }
 
-    fscanf(f, "%s", str);
-    fscanf(f, "%d", &color_planes);
-    fscanf(f, "%s", str);
-    fscanf(f, "%d", &h);
-    fscanf(f, "%s", str);
-    fscanf(f, "%d", &w);
+    if(fscanf(f, "%s", str) < 0 && HDferror(f)) {
+        printf( "fscanf error in file %s.\n", data_file );
+        goto out;
+    } /* end if */
+
+    if(fscanf(f, "%d", &color_planes) < 0 && HDferror(f)) {
+        printf( "fscanf error in file %s.\n", data_file );
+        goto out;
+    } /* end if */
+
+    if(fscanf(f, "%s", str) < 0 && HDferror(f)) {
+        printf( "fscanf error in file %s.\n", data_file );
+        goto out;
+    } /* end if */
+ 
+    if(fscanf(f, "%d", &h) < 0 && HDferror(f)) {
+        printf( "fscanf error in file %s.\n", data_file );
+        goto out;
+    } /* end if */
+
+    if(fscanf(f, "%s", str) < 0 && HDferror(f)) {
+        printf( "fscanf error in file %s.\n", data_file );
+        goto out;
+    } /* end if */
+
+    if(fscanf(f, "%d", &w) < 0 && HDferror(f)) {
+        printf( "fscanf error in file %s.\n", data_file );
+        goto out;
+    } /* end if */
 
     /* Check product for overflow */
     if(w < 1 || h < 1 || color_planes < 1)
@@ -842,7 +860,10 @@ static int read_data(const char* fname, /*IN*/
 
     /* Read data elements */
     for(i = 0; i < n_elements; i++) {
-        fscanf(f, "%d",&n);
+        if(fscanf(f, "%d", &n) < 0 && HDferror(f)) {
+            printf( "fscanf error in file %s.\n", data_file );
+            goto out;
+        } /* end if */
         image_data[i] = (unsigned char)n;
     } /* end for */
 
@@ -887,20 +908,7 @@ static int read_palette(const char* fname,
     unsigned int  green;
     unsigned int  blue;
     unsigned      nentries;
-    char          *srcdir = getenv("srcdir"); /* the source directory */
-    char          data_file[512];             /* buffer to hold name of existing data file */
-
-    /*-------------------------------------------------------------------------
-    * compose the name of the file to open, using "srcdir", if appropriate
-    *-------------------------------------------------------------------------
-    */
-    HDstrcpy(data_file, "");
-    if (srcdir)
-    {
-        HDstrcpy(data_file, srcdir);
-        HDstrcat(data_file, "/");
-    }
-    HDstrcat(data_file,fname);
+    const char *data_file = H5_get_srcdir_filename(fname);
 
     /* ensure the given palette is valid */
     if (!palette)

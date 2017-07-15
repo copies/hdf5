@@ -5,12 +5,10 @@
  *                                                                           *
  * This file is part of HDF5.  The full HDF5 copyright notice, including     *
  * terms governing use, modification, and redistribution, is contained in    *
- * the files COPYING and Copyright.html.  COPYING can be found at the root   *
- * of the source code distribution tree; Copyright.html can be found at the  *
- * root level of an installed copy of the electronic HDF5 document set and   *
- * is linked from the top-level documents page.  It can also be found at     *
- * http://hdfgroup.org/HDF5/doc/Copyright.html.  If you do not have          *
- * access to either file, you may request a copy from help@hdfgroup.org.     *
+ * the COPYING file, which can be found at the root of the source code       *
+ * distribution tree, or in https://support.hdfgroup.org/ftp/HDF5/releases.  *
+ * If you do not have access to either file, you may request a copy from     *
+ * help@hdfgroup.org.                                                        *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 /********************************************************************
@@ -161,7 +159,7 @@ void *tts_cancel_thread(void H5_ATTR_UNUSED *arg)
     ret=H5Diterate(&buffer, H5T_NATIVE_INT, dataspace, tts_cancel_callback, &dataset);
     assert(ret>=0);
 
-    sleep(3);
+    HDsleep(3);
 
     datavalue = 100;
     ret=H5Dwrite(dataset, H5T_NATIVE_INT, H5S_ALL, H5S_ALL, H5P_DEFAULT, &datavalue);
@@ -190,7 +188,7 @@ herr_t tts_cancel_callback(void *elem, hid_t H5_ATTR_UNUSED type_id, unsigned H5
     int ret;
 
     tts_cancel_barrier();
-    sleep(3);
+    HDsleep(3);
 
     if (value != 1) {
         TestErrPrintf("Error! Element value should be 1 and not %d\n", value);

@@ -1,4 +1,4 @@
-cmake_minimum_required (VERSION 3.1.0)
+cmake_minimum_required (VERSION 3.2.2)
 PROJECT (HDF5_EXAMPLES)
 
 #-----------------------------------------------------------------------------
@@ -34,6 +34,14 @@ set (examples
     h5_extlink
     h5_elink_unix2win
     h5_shared_mesg
+    h5_vds
+    h5_vds-exc
+    h5_vds-exclim
+    h5_vds-eiger
+    h5_vds-simpleIO
+    h5_vds-percival
+    h5_vds-percival-unlim
+    h5_vds-percival-unlim-maxmin
 )
 
 foreach (example ${examples})
@@ -48,8 +56,8 @@ foreach (example ${examples})
     TARGET_C_PROPERTIES (${example}-shared SHARED " " " ")
     target_link_libraries (${example}-shared ${HDF5_LIBSH_TARGET})
     set_target_properties (${example}-shared PROPERTIES FOLDER examples)
-  endif (BUILD_SHARED_LIBS)
-endforeach (example ${examples})
+  endif ()
+endforeach ()
 
 if (H5_HAVE_PARALLEL)
   add_executable (ph5example ${HDF5_EXAMPLES_SOURCE_DIR}/ph5example.c)
@@ -63,9 +71,9 @@ if (H5_HAVE_PARALLEL)
     TARGET_C_PROPERTIES (ph5example-shared SHARED " " " ")
     target_link_libraries (ph5example-shared ${HDF5_LIBSH_TARGET})
     set_target_properties (ph5example-shared PROPERTIES FOLDER examples)
-  endif (BUILD_SHARED_LIBS)
-endif (H5_HAVE_PARALLEL)
+  endif ()
+endif ()
 
 if (BUILD_TESTING)
   include (CMakeTests.cmake)
-endif (BUILD_TESTING)
+endif ()

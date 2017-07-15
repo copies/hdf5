@@ -5,12 +5,10 @@
  *                                                                           *
  * This file is part of HDF5.  The full HDF5 copyright notice, including     *
  * terms governing use, modification, and redistribution, is contained in    *
- * the files COPYING and Copyright.html.  COPYING can be found at the root   *
- * of the source code distribution tree; Copyright.html can be found at the  *
- * root level of an installed copy of the electronic HDF5 document set and   *
- * is linked from the top-level documents page.  It can also be found at     *
- * http://hdfgroup.org/HDF5/doc/Copyright.html.  If you do not have          *
- * access to either file, you may request a copy from help@hdfgroup.org.     *
+ * the COPYING file, which can be found at the root of the source code       *
+ * distribution tree, or in https://support.hdfgroup.org/ftp/HDF5/releases.  *
+ * If you do not have access to either file, you may request a copy from     *
+ * help@hdfgroup.org.                                                        *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 /*
@@ -100,9 +98,9 @@ int create_nbit_dsets_float(hid_t fid, hid_t fsid, hid_t msid);
 int
 create_normal_dset(hid_t fid, hid_t fsid, hid_t msid)
 {
-    hid_t       dataset;         /* file and dataset handles */
-    hid_t       dcpl;
-    float       data[NX][NY];          /* data to write */
+    hid_t       dataset         = -1;   /* file and dataset handles */
+    hid_t       dcpl            = -1;
+    float       data[NX][NY];           /* data to write */
     float       fillvalue = -2.2f;
     int         i, j;
 
@@ -207,9 +205,9 @@ error:
 int
 create_scale_offset_dsets_float(hid_t fid, hid_t fsid, hid_t msid)
 {
-    hid_t       dataset;         /* dataset handles */
-    hid_t       dcpl;
-    float       data[NX][NY];          /* data to write */
+    hid_t       dataset             = -1;   /* dataset handles */
+    hid_t       dcpl                = -1;
+    float       data[NX][NY];               /* data to write */
     float       fillvalue = -2.2f;
     hsize_t     chunk[RANK] = {CHUNK0, CHUNK1};
     int         i, j;
@@ -298,9 +296,9 @@ error:
 int
 create_scale_offset_dsets_double(hid_t fid, hid_t fsid, hid_t msid)
 {
-    hid_t       dataset;         /* dataset handles */
-    hid_t       dcpl;
-    double      data[NX][NY];          /* data to write */
+    hid_t       dataset         = -1;   /* dataset handles */
+    hid_t       dcpl            = -1;
+    double      data[NX][NY];           /* data to write */
     double      fillvalue = -2.2f;
     hsize_t     chunk[RANK] = {CHUNK0, CHUNK1};
     int         i, j;
@@ -389,9 +387,9 @@ error:
 int
 create_scale_offset_dsets_char(hid_t fid, hid_t fsid, hid_t msid)
 {
-    hid_t       dataset;         /* dataset handles */
-    hid_t       dcpl;
-    char        data[NX][NY];          /* data to write */
+    hid_t       dataset         = -1;   /* dataset handles */
+    hid_t       dcpl            = -1;
+    char        data[NX][NY];           /* data to write */
     char        fillvalue = -2;
     hsize_t     chunk[RANK] = {CHUNK0, CHUNK1};
     int         i, j;
@@ -401,7 +399,7 @@ create_scale_offset_dsets_char(hid_t fid, hid_t fsid, hid_t msid)
      */
     for (j = 0; j < NX; j++) {
         for (i = 0; i < NY; i++)
-            data[j][i] = i + j;
+            data[j][i] = (char)(i + j);
     }
     /*
      * 0 1 2 3 4 5
@@ -488,9 +486,9 @@ error:
 int
 create_scale_offset_dsets_short(hid_t fid, hid_t fsid, hid_t msid)
 {
-    hid_t       dataset;         /* dataset handles */
-    hid_t       dcpl;
-    short       data[NX][NY];          /* data to write */
+    hid_t       dataset         = -1;   /* dataset handles */
+    hid_t       dcpl            = -1;
+    short       data[NX][NY];           /* data to write */
     short       fillvalue = -2;
     hsize_t     chunk[RANK] = {CHUNK0, CHUNK1};
     int         i, j;
@@ -500,7 +498,7 @@ create_scale_offset_dsets_short(hid_t fid, hid_t fsid, hid_t msid)
      */
     for (j = 0; j < NX; j++) {
         for (i = 0; i < NY; i++)
-            data[j][i] = i + j;
+            data[j][i] = (short)(i + j);
     }
     /*
      * 0 1 2 3 4 5
@@ -587,9 +585,9 @@ error:
 int
 create_scale_offset_dsets_int(hid_t fid, hid_t fsid, hid_t msid)
 {
-    hid_t       dataset;         /* dataset handles */
-    hid_t       dcpl;
-    int         data[NX][NY];          /* data to write */
+    hid_t       dataset         = -1;   /* dataset handles */
+    hid_t       dcpl            = -1;
+    int         data[NX][NY];           /* data to write */
     int         fillvalue = -2;
     hsize_t     chunk[RANK] = {CHUNK0, CHUNK1};
     int         i, j;
@@ -687,9 +685,9 @@ error:
 int
 create_scale_offset_dsets_long_long(hid_t fid, hid_t fsid, hid_t msid)
 {
-    hid_t       dataset;         /* dataset handles */
-    hid_t       dcpl;
-    long long   data[NX][NY];          /* data to write */
+    hid_t       dataset         = -1;   /* dataset handles */
+    hid_t       dcpl            = -1;
+    long long   data[NX][NY];           /* data to write */
     long long   fillvalue = -2;
     hsize_t     chunk[RANK] = {CHUNK0, CHUNK1};
     int         i, j;
@@ -786,9 +784,9 @@ error:
 int
 create_fletcher_dsets_float(hid_t fid, hid_t fsid, hid_t msid)
 {
-    hid_t       dataset;         /* dataset handles */
-    hid_t       dcpl;
-    float       data[NX][NY];          /* data to write */
+    hid_t       dataset         = -1;   /* dataset handles */
+    hid_t       dcpl            = -1;
+    float       data[NX][NY];           /* data to write */
     float       fillvalue = -2.2f;
     hsize_t     chunk[RANK] = {CHUNK0, CHUNK1};
     int         i, j;
@@ -878,9 +876,9 @@ int
 create_deflate_dsets_float(hid_t fid, hid_t fsid, hid_t msid)
 {
 #ifdef H5_HAVE_FILTER_DEFLATE
-    hid_t       dataset;         /* dataset handles */
-    hid_t       dcpl;
-    float       data[NX][NY];          /* data to write */
+    hid_t       dataset         = -1;   /* dataset handles */
+    hid_t       dcpl            = -1;
+    float       data[NX][NY];           /* data to write */
     float       fillvalue = -2.2f;
     hsize_t     chunk[RANK] = {CHUNK0, CHUNK1};
     int         i, j;
@@ -1070,9 +1068,9 @@ error:
 int
 create_shuffle_dsets_float(hid_t fid, hid_t fsid, hid_t msid)
 {
-    hid_t       dataset;         /* dataset handles */
-    hid_t       dcpl;
-    float       data[NX][NY];          /* data to write */
+    hid_t       dataset         = -1;   /* dataset handles */
+    hid_t       dcpl            = -1;
+    float       data[NX][NY];           /* data to write */
     float       fillvalue = -2.2f;
     hsize_t     chunk[RANK] = {CHUNK0, CHUNK1};
     int         i, j;
@@ -1161,11 +1159,11 @@ error:
 int
 create_nbit_dsets_float(hid_t fid, hid_t fsid, hid_t msid)
 {
-    hid_t       dataset;         /* dataset handles */
-    hid_t       datatype;
-    hid_t       dcpl;
+    hid_t       dataset         = -1;   /* dataset handles */
+    hid_t       datatype        = -1;
+    hid_t       dcpl            = -1;
     size_t      precision, offset;
-    float       data[NX][NY];          /* data to write */
+    float       data[NX][NY];           /* data to write */
     float       fillvalue = -2.2f;
     hsize_t     chunk[RANK] = {CHUNK0, CHUNK1};
     int         i, j;
@@ -1260,8 +1258,8 @@ error:
  *
  * Purpose:     Create a file for cross_read.c test.
  *
- * Return:      Success:        exit(0)
- *              Failure:        exit(1)
+ * Return:      Success:        exit(EXIT_SUCCESS)
+ *              Failure:        exit(EXIT_FAILURE)
  *
  * Programmer:  Raymond Lu
  *              Some time ago

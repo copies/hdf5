@@ -5,12 +5,10 @@
  *                                                                           *
  * This file is part of HDF5.  The full HDF5 copyright notice, including     *
  * terms governing use, modification, and redistribution, is contained in    *
- * the files COPYING and Copyright.html.  COPYING can be found at the root   *
- * of the source code distribution tree; Copyright.html can be found at the  *
- * root level of an installed copy of the electronic HDF5 document set and   *
- * is linked from the top-level documents page.  It can also be found at     *
- * http://hdfgroup.org/HDF5/doc/Copyright.html.  If you do not have          *
- * access to either file, you may request a copy from help@hdfgroup.org.     *
+ * the COPYING file, which can be found at the root of the source code       *
+ * distribution tree, or in https://support.hdfgroup.org/ftp/HDF5/releases.  *
+ * If you do not have access to either file, you may request a copy from     *
+ * help@hdfgroup.org.                                                        *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 /*-------------------------------------------------------------------------
@@ -31,7 +29,7 @@
 /* Module Setup */
 /****************/
 
-#define H5G_PACKAGE		/*suppress error about including H5Gpkg   */
+#include "H5Gmodule.h"          /* This source code file is part of the H5G module */
 
 
 /***********/
@@ -77,7 +75,7 @@ typedef struct H5G_node_key_t {
 /********************/
 
 /* B-tree callbacks */
-static H5RC_t *H5G_node_get_shared(const H5F_t *f, const void *_udata);
+static H5UC_t *H5G_node_get_shared(const H5F_t *f, const void *_udata);
 static herr_t H5G_node_create(H5F_t *f, hid_t dxpl_id, H5B_ins_t op, void *_lt_key,
 			      void *_udata, void *_rt_key,
 			      haddr_t *addr_p/*out*/);
@@ -119,7 +117,7 @@ H5B_class_t H5B_SNODE[1] = {{
     H5G_node_remove,		/*remove		*/
     H5G_node_decode_key,	/*decode		*/
     H5G_node_encode_key,	/*encode		*/
-    H5G_node_debug_key,		/*debug			*/
+    H5G_node_debug_key		/*debug			*/
 }};
 
 /* Declare a free list to manage the H5G_node_t struct */
@@ -156,7 +154,7 @@ H5FL_SEQ_DEFINE(H5G_entry_t);
  *
  *-------------------------------------------------------------------------
  */
-static H5RC_t *
+static H5UC_t *
 H5G_node_get_shared(const H5F_t *f, const void H5_ATTR_UNUSED *_udata)
 {
     FUNC_ENTER_NOAPI_NOINIT_NOERR
@@ -404,7 +402,7 @@ H5G_node_cmp2(void *_lt_key, void *_udata, void *_rt_key)
     H5G_node_key_t	   *rt_key = (H5G_node_key_t *) _rt_key;
     const char		   *s1, *s2;
     const char		   *base;           /* Base of heap */
-    int		           ret_value;
+    int		           ret_value = -1;  /* Return value */
 
     FUNC_ENTER_NOAPI_NOINIT_NOERR
 
@@ -541,7 +539,7 @@ H5G_node_found(H5F_t *f, hid_t dxpl_id, haddr_t addr, const void H5_ATTR_UNUSED 
     /*
      * Load the symbol table node for exclusive access.
      */
-    if(NULL == (sn = (H5G_node_t *)H5AC_protect(f, dxpl_id, H5AC_SNODE, addr, f, H5AC_READ)))
+    if(NULL == (sn = (H5G_node_t *)H5AC_protect(f, dxpl_id, H5AC_SNODE, addr, f, H5AC__READ_ONLY_FLAG)))
 	HGOTO_ERROR(H5E_SYM, H5E_CANTLOAD, FAIL, "unable to protect symbol table node")
 
     /* Get base address of heap */
@@ -647,7 +645,7 @@ H5G_node_insert(H5F_t *f, hid_t dxpl_id, haddr_t addr,
     /*
      * Load the symbol node.
      */
-    if(NULL == (sn = (H5G_node_t *)H5AC_protect(f, dxpl_id, H5AC_SNODE, addr, f, H5AC_WRITE)))
+    if(NULL == (sn = (H5G_node_t *)H5AC_protect(f, dxpl_id, H5AC_SNODE, addr, f, H5AC__NO_FLAGS_SET)))
 	HGOTO_ERROR(H5E_SYM, H5E_CANTLOAD, H5B_INS_ERROR, "unable to protect symbol table node")
 
     /* Get base address of heap */
@@ -691,7 +689,7 @@ H5G_node_insert(H5F_t *f, hid_t dxpl_id, haddr_t addr,
 	if(H5G_node_create(f, dxpl_id, H5B_INS_FIRST, NULL, NULL, NULL, new_node_p/*out*/) < 0)
 	    HGOTO_ERROR(H5E_SYM, H5E_CANTINIT, H5B_INS_ERROR, "unable to split symbol table node")
 
-	if(NULL == (snrt = (H5G_node_t *)H5AC_protect(f, dxpl_id, H5AC_SNODE, *new_node_p, f, H5AC_WRITE)))
+	if(NULL == (snrt = (H5G_node_t *)H5AC_protect(f, dxpl_id, H5AC_SNODE, *new_node_p, f, H5AC__NO_FLAGS_SET)))
 	    HGOTO_ERROR(H5E_SYM, H5E_CANTLOAD, H5B_INS_ERROR, "unable to split symbol table node")
 
 	HDmemcpy(snrt->entry, sn->entry + H5F_SYM_LEAF_K(f),
@@ -715,7 +713,7 @@ H5G_node_insert(H5F_t *f, hid_t dxpl_id, haddr_t addr,
 		md_key->offset = ent.name_off;
 	} /* end if */
         else {
-	    idx -= H5F_SYM_LEAF_K(f);
+	    idx -= (int)H5F_SYM_LEAF_K(f);
 	    insert_into = snrt;
 	    if(idx == (int)H5F_SYM_LEAF_K(f)) {
 		rt_key->offset = ent.name_off;
@@ -808,7 +806,7 @@ H5G_node_remove(H5F_t *f, hid_t dxpl_id, haddr_t addr, void *_lt_key/*in,out*/,
     HDassert(udata && udata->common.heap);
 
     /* Load the symbol table */
-    if(NULL == (sn = (H5G_node_t *)H5AC_protect(f, dxpl_id, H5AC_SNODE, addr, f, H5AC_WRITE)))
+    if(NULL == (sn = (H5G_node_t *)H5AC_protect(f, dxpl_id, H5AC_SNODE, addr, f, H5AC__NO_FLAGS_SET)))
 	HGOTO_ERROR(H5E_SYM, H5E_CANTLOAD, H5B_INS_ERROR, "unable to protect symbol table node")
 
     /* "Normal" removal of a single entry from the symbol table node */
@@ -1001,7 +999,7 @@ H5G__node_iterate(H5F_t *f, hid_t dxpl_id, const void H5_ATTR_UNUSED *_lt_key, h
     HDassert(udata && udata->heap);
 
     /* Protect the symbol table node & local heap while we iterate over entries */
-    if(NULL == (sn = (H5G_node_t *)H5AC_protect(f, dxpl_id, H5AC_SNODE, addr, f, H5AC_READ)))
+    if(NULL == (sn = (H5G_node_t *)H5AC_protect(f, dxpl_id, H5AC_SNODE, addr, f, H5AC__READ_ONLY_FLAG)))
 	HGOTO_ERROR(H5E_SYM, H5E_CANTLOAD, H5_ITER_ERROR, "unable to load symbol table node")
 
     /*
@@ -1078,7 +1076,7 @@ H5G__node_sumup(H5F_t *f, hid_t dxpl_id, const void H5_ATTR_UNUSED *_lt_key, had
     HDassert(num_objs);
 
     /* Find the object node and add the number of symbol entries. */
-    if(NULL == (sn = (H5G_node_t *)H5AC_protect(f, dxpl_id, H5AC_SNODE, addr, f, H5AC_READ)))
+    if(NULL == (sn = (H5G_node_t *)H5AC_protect(f, dxpl_id, H5AC_SNODE, addr, f, H5AC__READ_ONLY_FLAG)))
 	HGOTO_ERROR(H5E_SYM, H5E_CANTLOAD, H5_ITER_ERROR, "unable to load symbol table node")
 
     *num_objs += sn->nsyms;
@@ -1123,7 +1121,7 @@ H5G__node_by_idx(H5F_t *f, hid_t dxpl_id, const void H5_ATTR_UNUSED *_lt_key, ha
     HDassert(udata);
 
     /* Get a pointer to the symbol table node */
-    if(NULL == (sn = (H5G_node_t *)H5AC_protect(f, dxpl_id, H5AC_SNODE, addr, f, H5AC_READ)))
+    if(NULL == (sn = (H5G_node_t *)H5AC_protect(f, dxpl_id, H5AC_SNODE, addr, f, H5AC__READ_ONLY_FLAG)))
 	HGOTO_ERROR(H5E_SYM, H5E_CANTLOAD, H5_ITER_ERROR, "unable to load symbol table node");
 
     /* Find the node, locate the object symbol table entry and retrieve the name */
@@ -1189,7 +1187,7 @@ H5G__node_init(H5F_t *f)
         /* <none> */
 
     /* Make shared B-tree info reference counted */
-    if(H5F_SET_GRP_BTREE_SHARED(f, H5RC_create(shared, H5B_shared_free)) < 0)
+    if(H5F_SET_GRP_BTREE_SHARED(f, H5UC_create(shared, H5B_shared_free)) < 0)
 	HGOTO_ERROR(H5E_RESOURCE, H5E_NOSPACE, FAIL, "can't create ref-count wrapper for shared B-tree info")
 
 done:
@@ -1222,7 +1220,7 @@ H5G_node_close(const H5F_t *f)
 
     /* Free the raw B-tree node buffer */
     if(H5F_GRP_BTREE_SHARED(f))
-        H5RC_DEC(H5F_GRP_BTREE_SHARED(f));
+        H5UC_DEC(H5F_GRP_BTREE_SHARED(f));
 
     FUNC_LEAVE_NOAPI(SUCCEED)
 } /* end H5G_node_close */
@@ -1261,11 +1259,11 @@ H5G__node_copy(H5F_t *f, hid_t dxpl_id, const void H5_ATTR_UNUSED *_lt_key, hadd
     HDassert(udata);
 
     /* load the symbol table into memory from the source file */
-    if(NULL == (sn = (H5G_node_t *)H5AC_protect(f, dxpl_id, H5AC_SNODE, addr, f, H5AC_READ)))
+    if(NULL == (sn = (H5G_node_t *)H5AC_protect(f, dxpl_id, H5AC_SNODE, addr, f, H5AC__READ_ONLY_FLAG)))
 	HGOTO_ERROR(H5E_SYM, H5E_CANTLOAD, H5_ITER_ERROR, "unable to load symbol table node")
 
     /* get the base address of the heap */
-    if(NULL == (heap = H5HL_protect(f, dxpl_id, udata->src_heap_addr, H5AC_READ)))
+    if(NULL == (heap = H5HL_protect(f, dxpl_id, udata->src_heap_addr, H5AC__READ_ONLY_FLAG)))
        HGOTO_ERROR(H5E_SYM, H5E_NOTFOUND, H5_ITER_ERROR, "unable to protect symbol name")
 
     /* copy object in this node one by one */
@@ -1359,12 +1357,19 @@ H5G__node_copy(H5F_t *f, hid_t dxpl_id, const void H5_ATTR_UNUSED *_lt_key, hadd
         name = (const char *)H5HL_offset_into(heap, src_ent->name_off);
 	HDassert(name);
 
+        /* Set copied metadata tag */
+        H5_BEGIN_TAG(dxpl_id, H5AC__COPIED_TAG, H5_ITER_ERROR);
+
         /* Insert the new object in the destination file's group */
         /* (Don't increment the link count - that's already done above for hard links) */
         if(H5G__stab_insert_real(udata->dst_file, udata->dst_stab, name, &lnk,
                 obj_type, (obj_type == H5O_TYPE_GROUP ? &gcrt_info : NULL),
                 dxpl_id) < 0)
-            HGOTO_ERROR(H5E_DATATYPE, H5E_CANTINIT, H5_ITER_ERROR, "unable to insert the name")
+            HGOTO_ERROR_TAG(H5E_DATATYPE, H5E_CANTINIT, H5_ITER_ERROR, "unable to insert the name")
+
+        /* Reset metadata tag */
+        H5_END_TAG(H5_ITER_ERROR);
+
     } /* end of for (i=0; i<sn->nsyms; i++) */
 
 done:
@@ -1413,7 +1418,7 @@ H5G__node_build_table(H5F_t *f, hid_t dxpl_id, const void H5_ATTR_UNUSED *_lt_ke
      * Save information about the symbol table node since we can't lock it
      * because we're about to call an application function.
      */
-    if(NULL == (sn = (H5G_node_t *)H5AC_protect(f, dxpl_id, H5AC_SNODE, addr, f, H5AC_READ)))
+    if(NULL == (sn = (H5G_node_t *)H5AC_protect(f, dxpl_id, H5AC_SNODE, addr, f, H5AC__READ_ONLY_FLAG)))
 	HGOTO_ERROR(H5E_SYM, H5E_CANTLOAD, H5_ITER_ERROR, "unable to load symbol table node")
 
     /* Check if the link table needs to be extended */
@@ -1520,14 +1525,14 @@ H5G_node_debug(H5F_t *f, hid_t dxpl_id, haddr_t addr, FILE * stream, int indent,
 
     /* Pin the heap down in memory */
     if(heap_addr > 0 && H5F_addr_defined(heap_addr))
-        if(NULL == (heap = H5HL_protect(f, dxpl_id, heap_addr, H5AC_READ)))
+        if(NULL == (heap = H5HL_protect(f, dxpl_id, heap_addr, H5AC__READ_ONLY_FLAG)))
             HGOTO_ERROR(H5E_SYM, H5E_CANTLOAD, FAIL, "unable to protect symbol table heap")
 
     /*
      * If we couldn't load the symbol table node, then try loading the
      * B-tree node.
      */
-    if(NULL == (sn = (H5G_node_t *)H5AC_protect(f, dxpl_id, H5AC_SNODE, addr, f, H5AC_READ))) {
+    if(NULL == (sn = (H5G_node_t *)H5AC_protect(f, dxpl_id, H5AC_SNODE, addr, f, H5AC__READ_ONLY_FLAG))) {
         H5G_bt_common_t	udata;		/*data to pass through B-tree	*/
 
         H5E_clear_stack(NULL); /* discard that error */

@@ -15,12 +15,10 @@
 !                                                                             *
 !   This file is part of HDF5.  The full HDF5 copyright notice, including     *
 !   terms governing use, modification, and redistribution, is contained in    *
-!   the files COPYING and Copyright.html.  COPYING can be found at the root   *
-!   of the source code distribution tree; Copyright.html can be found at the  *
-!   root level of an installed copy of the electronic HDF5 document set and   *
-!   is linked from the top-level documents page.  It can also be found at     *
-!   http://hdfgroup.org/HDF5/doc/Copyright.html.  If you do not have          *
-!   access to either file, you may request a copy from help@hdfgroup.org.     *
+!   the COPYING file, which can be found at the root of the source code       *
+!   distribution tree, or in https://support.hdfgroup.org/ftp/HDF5/releases.  *
+!   If you do not have access to either file, you may request a copy from     *
+!   help@hdfgroup.org.                                                        *
 ! * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 !
 !*****
@@ -57,6 +55,11 @@ PROGRAM fortranlibtest_F03
   ELSE
      total_error = total_error + 1
   ENDIF
+
+  ret_total_error = 0
+!  PROBLEMS with C
+!  CALL test_error(ret_total_error)
+!  CALL write_test_status(ret_total_error, ' Test error API based on data I/O', total_error)
 
   WRITE(*,*)
 
@@ -126,7 +129,7 @@ PROGRAM fortranlibtest_F03
 
   ret_total_error = 0
   CALL test_array_bkg(ret_total_error)
-  CALL write_test_status(ret_total_error, ' Testing Partial I/O of Array Fields in Compound Datatype FunctionalityT', total_error)
+  CALL write_test_status(ret_total_error, ' Testing Partial I/O of Array Fields in Compound Datatype Functionality', total_error)
 
   ret_total_error = 0
   CALL test_genprop_class_callback(ret_total_error)
@@ -169,6 +172,14 @@ PROGRAM fortranlibtest_F03
   CALL test_get_file_image(ret_total_error)
   CALL write_test_status(ret_total_error, ' Testing get file image ', total_error)
 
+!     write(*,*)
+!     write(*,*) '========================================='
+!     write(*,*) 'Testing VDS                              '
+!     write(*,*) '========================================='
+
+  ret_total_error = 0
+  CALL test_vds(ret_total_error)
+  CALL write_test_status(ret_total_error, ' Testing vds ', total_error)
 
   WRITE(*,*)
 

@@ -5,12 +5,10 @@
  *                                                                           *
  * This file is part of HDF5.  The full HDF5 copyright notice, including     *
  * terms governing use, modification, and redistribution, is contained in    *
- * the files COPYING and Copyright.html.  COPYING can be found at the root   *
- * of the source code distribution tree; Copyright.html can be found at the  *
- * root level of an installed copy of the electronic HDF5 document set and   *
- * is linked from the top-level documents page.  It can also be found at     *
- * http://hdfgroup.org/HDF5/doc/Copyright.html.  If you do not have          *
- * access to either file, you may request a copy from help@hdfgroup.org.     *
+ * the COPYING file, which can be found at the root of the source code       *
+ * distribution tree, or in https://support.hdfgroup.org/ftp/HDF5/releases.  *
+ * If you do not have access to either file, you may request a copy from     *
+ * help@hdfgroup.org.                                                        *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 /*-------------------------------------------------------------------------
@@ -24,9 +22,10 @@
  *-------------------------------------------------------------------------
  */
 
-#define H5G_PACKAGE		/*suppress error about including H5Gpkg	  */
-#define H5L_PACKAGE		/*suppress error about including H5Lpkg	  */
-#define H5O_PACKAGE		/*suppress error about including H5Opkg	  */
+#define H5G_FRIEND		/*suppress error about including H5Gpkg   */
+#define H5L_FRIEND		/*suppress error about including H5Lpkg	  */
+#include "H5Omodule.h"          /* This source code file is part of the H5O module */
+
 
 #include "H5private.h"		/* Generic Functions			*/
 #include "H5Eprivate.h"		/* Error handling		  	*/
@@ -119,7 +118,7 @@ H5O_linfo_decode(H5F_t *f, hid_t H5_ATTR_UNUSED dxpl_id, H5O_t H5_ATTR_UNUSED *o
 {
     H5O_linfo_t	*linfo = NULL;  /* Link info */
     unsigned char index_flags;  /* Flags for encoding link index info */
-    void        *ret_value;     /* Return value */
+    void *ret_value = NULL;     /* Return value */
 
     FUNC_ENTER_NOAPI_NOINIT
 
@@ -249,7 +248,7 @@ H5O_linfo_copy(const void *_mesg, void *_dest)
 {
     const H5O_linfo_t   *linfo = (const H5O_linfo_t *)_mesg;
     H5O_linfo_t         *dest = (H5O_linfo_t *) _dest;
-    void                *ret_value;     /* Return value */
+    void                *ret_value = NULL;      /* Return value */
 
     FUNC_ENTER_NOAPI_NOINIT
 
@@ -289,7 +288,7 @@ static size_t
 H5O_linfo_size(const H5F_t *f, hbool_t H5_ATTR_UNUSED disable_shared, const void *_mesg)
 {
     const H5O_linfo_t   *linfo = (const H5O_linfo_t *)_mesg;
-    size_t ret_value;   /* Return value */
+    size_t ret_value = 0;       /* Return value */
 
     FUNC_ENTER_NOAPI_NOINIT_NOERR
 
@@ -383,12 +382,12 @@ H5O_linfo_copy_file(H5F_t H5_ATTR_UNUSED *file_src, void *native_src, H5F_t *fil
     hbool_t H5_ATTR_UNUSED *recompute_size, unsigned H5_ATTR_UNUSED *mesg_flags,
     H5O_copy_t *cpy_info, void *_udata, hid_t dxpl_id)
 {
-    H5O_linfo_t          *linfo_src = (H5O_linfo_t *) native_src;
-    H5O_linfo_t          *linfo_dst = NULL;
+    H5O_linfo_t         *linfo_src = (H5O_linfo_t *) native_src;
+    H5O_linfo_t         *linfo_dst = NULL;
     H5G_copy_file_ud_t *udata = (H5G_copy_file_ud_t *) _udata;
-    void                 *ret_value;          /* Return value */
+    void                *ret_value = NULL;      /* Return value */
 
-    FUNC_ENTER_NOAPI_NOINIT
+    FUNC_ENTER_NOAPI_NOINIT_TAG(dxpl_id, H5AC__COPIED_TAG, NULL)
 
     /* check args */
     HDassert(linfo_src);
@@ -429,7 +428,7 @@ done:
         if(linfo_dst)
             linfo_dst = H5FL_FREE(H5O_linfo_t, linfo_dst);
 
-    FUNC_LEAVE_NOAPI(ret_value)
+    FUNC_LEAVE_NOAPI_TAG(ret_value, NULL)
 } /* H5O_linfo_copy_file() */
 
 
@@ -468,10 +467,16 @@ H5O_linfo_post_copy_file_cb(const H5O_link_t *src_lnk, void *_udata)
         HGOTO_ERROR(H5E_OHDR, H5E_CANTCOPY, H5_ITER_ERROR, "unable to copy link")
     dst_lnk_init = TRUE;
 
+    /* Set metadata tag in dxpl_id */
+    H5_BEGIN_TAG(udata->dxpl_id, H5AC__COPIED_TAG, FAIL);
+
     /* Insert the new object in the destination file's group */
     /* (Doesn't increment the link count - that's already been taken care of for hard links) */
     if(H5G__dense_insert(udata->dst_oloc->file, udata->dxpl_id, udata->dst_linfo, &dst_lnk) < 0)
-        HGOTO_ERROR(H5E_OHDR, H5E_CANTINSERT, H5_ITER_ERROR, "unable to insert destination link")
+        HGOTO_ERROR_TAG(H5E_OHDR, H5E_CANTINSERT, H5_ITER_ERROR, "unable to insert destination link")
+
+    /* Reset metadata tag in dxpl_id */
+    H5_END_TAG(FAIL);
 
 done:
     /* Check if the destination link has been initialized */

@@ -5,12 +5,10 @@
 !                                                                             *
 !   This file is part of HDF5.  The full HDF5 copyright notice, including     *
 !   terms governing use, modification, and redistribution, is contained in    *
-!   the files COPYING and Copyright.html.  COPYING can be found at the root   *
-!   of the source code distribution tree; Copyright.html can be found at the  *
-!   root level of an installed copy of the electronic HDF5 document set and   *
-!   is linked from the top-level documents page.  It can also be found at     *
-!   http://hdfgroup.org/HDF5/doc/Copyright.html.  If you do not have          *
-!   access to either file, you may request a copy from help@hdfgroup.org.     *
+!   the COPYING file, which can be found at the root of the source code       *
+!   distribution tree, or in https://support.hdfgroup.org/ftp/HDF5/releases.  *
+!   If you do not have access to either file, you may request a copy from     *
+!   help@hdfgroup.org.                                                        *
 ! * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 !
 !
@@ -19,11 +17,11 @@
 
 MODULE h5ds
 
+  USE, INTRINSIC :: ISO_C_BINDING, ONLY : C_PTR, C_CHAR, C_FLOAT, C_DOUBLE, C_LOC, C_CHAR
   USE h5fortran_types
   USE hdf5
 
 CONTAINS
-
 
 !-------------------------------------------------------------------------
 ! Function: H5DSset_scale_f
@@ -60,16 +58,13 @@ CONTAINS
     INTEGER(SIZE_T) :: dimname_len                     ! length of dimname (if present)
 
     INTERFACE
-       INTEGER FUNCTION H5DSset_scale_c(dsid, dimname, dimname_len )
-
-         USE h5global
+       INTEGER FUNCTION H5DSset_scale_c(dsid, dimname, dimname_len) &
+            BIND(C,NAME='h5dsset_scale_c')
+         IMPORT :: C_CHAR
+         IMPORT :: HID_T, SIZE_T
          IMPLICIT NONE
-         !DEC$IF DEFINED(HDF5F90_WINDOWS)
-         !DEC$ATTRIBUTES C,reference,decorate,alias:'H5DSSET_SCALE_C'::h5dsset_scale_c
-         !DEC$ENDIF
-         !DEC$ATTRIBUTES reference :: dimname  
          INTEGER(hid_t),   INTENT(in) :: dsid     ! The dataset to be made a Dimension Scale
-         CHARACTER(LEN=*), INTENT(in) :: dimname  ! The dimension name
+         CHARACTER(KIND=C_CHAR), DIMENSION(*), INTENT(in) :: dimname  ! The dimension name
          INTEGER(SIZE_T),  INTENT(in) :: dimname_len
        END FUNCTION H5DSset_scale_c
     END INTERFACE
@@ -117,13 +112,10 @@ CONTAINS
     INTEGER                    :: c_idx
     
     INTERFACE
-       INTEGER FUNCTION  H5DSattach_scale_c(did, dsid, idx )
-         
-         USE h5global
+       INTEGER FUNCTION  H5DSattach_scale_c(did, dsid, idx) &
+            BIND(C,NAME='h5dsattach_scale_c') 
+         IMPORT :: HID_T
          IMPLICIT NONE
-         !DEC$IF DEFINED(HDF5F90_WINDOWS)
-         !DEC$ATTRIBUTES C,reference,decorate,alias:'H5DSATTACH_SCALE_C':: h5dsattach_scale_c
-         !DEC$ENDIF
          INTEGER(hid_t), INTENT(in) :: did     ! the dataset
          INTEGER(hid_t), INTENT(in) :: dsid    ! the scale to be attached 
          INTEGER       , INTENT(in) :: idx     ! the dimension of did that dsid is associated with.
@@ -170,13 +162,10 @@ CONTAINS
     INTEGER                    :: c_idx
     
     INTERFACE
-       INTEGER FUNCTION  H5DSdetach_scale_c(did, dsid, idx )
-         
-         USE h5global
+       INTEGER FUNCTION  H5DSdetach_scale_c(did, dsid, idx) &
+            BIND(C,NAME='h5dsdetach_scale_c')
+         IMPORT :: HID_T
          IMPLICIT NONE
-         !DEC$IF DEFINED(HDF5F90_WINDOWS)
-         !DEC$ATTRIBUTES C,reference,decorate,alias:'H5DSDETACH_SCALE_C':: h5dsdetach_scale_c
-         !DEC$ENDIF
          INTEGER(hid_t), INTENT(in) :: did     ! the dataset
          INTEGER(hid_t), INTENT(in) :: dsid    ! the scale to be detached 
          INTEGER       , INTENT(in) :: idx     ! the dimension of did to detach
@@ -227,13 +216,10 @@ CONTAINS
     INTEGER                     :: c_idx
     
     INTERFACE
-       INTEGER FUNCTION H5DSis_attached_c(did, dsid, idx, c_is_attached )
-         
-         USE h5global
+       INTEGER FUNCTION H5DSis_attached_c(did, dsid, idx, c_is_attached) &
+            BIND(C,NAME='h5dsis_attached_c')
+         IMPORT :: HID_T
          IMPLICIT NONE
-         !DEC$IF DEFINED(HDF5F90_WINDOWS)
-         !DEC$ATTRIBUTES C,reference,decorate,alias:'H5DSIS_ATTACHED_C':: h5dsis_attached_c
-         !DEC$ENDIF
          INTEGER(hid_t), INTENT(in)  :: did         ! the dataset
          INTEGER(hid_t), INTENT(in)  :: dsid        ! the scale to be detached 
          INTEGER       , INTENT(in)  :: idx         ! the dimension of did to detach
@@ -292,14 +278,11 @@ CONTAINS
     INTEGER                     :: c_is_scale
     
     INTERFACE
-       INTEGER FUNCTION  H5DSis_scale_c(did,c_is_scale)
-         
-         USE h5global
+       INTEGER FUNCTION H5DSis_scale_c(did,c_is_scale) &
+            BIND(C,NAME='h5dsis_scale_c')
+         IMPORT :: HID_T
          IMPLICIT NONE
-         !DEC$IF DEFINED(HDF5F90_WINDOWS)
-         !DEC$ATTRIBUTES C,reference,decorate,alias:'H5DSIS_SCALE_C':: h5dsis_scale_c
-         !DEC$ENDIF
-         INTEGER(hid_t), INTENT(in) :: did     !  the data set to query
+         INTEGER(hid_t), INTENT(in) :: did
          INTEGER, INTENT(out) :: c_is_scale
        END FUNCTION H5DSis_scale_c
     END INTERFACE
@@ -352,17 +335,14 @@ CONTAINS
     INTEGER :: c_idx
 
     INTERFACE
-       INTEGER FUNCTION H5DSset_label_c(did, idx, label, label_len)
-
-         USE h5global
+       INTEGER FUNCTION H5DSset_label_c(did, idx, label, label_len) &
+            BIND(C,NAME='h5dsset_label_c')
+         IMPORT :: C_CHAR
+         IMPORT :: HID_T, SIZE_T
          IMPLICIT NONE
-         !DEC$IF DEFINED(HDF5F90_WINDOWS)
-         !DEC$ATTRIBUTES C,reference,decorate,alias:'H5DSSET_LABEL_C'::h5dsset_label_c
-         !DEC$ENDIF
-         !DEC$ATTRIBUTES reference :: label
          INTEGER(hid_t),   INTENT(in) :: did        ! The dataset
          INTEGER       ,   INTENT(in) :: idx        ! The dimension
-         CHARACTER(LEN=*), INTENT(in) :: label      ! The label
+         CHARACTER(KIND=C_CHAR), DIMENSION(*), INTENT(in) :: label      ! The label
          INTEGER(SIZE_T),  INTENT(in) :: label_len  ! Length of label
        END FUNCTION H5DSset_label_c
     END INTERFACE
@@ -410,17 +390,14 @@ CONTAINS
     INTEGER :: c_idx
 
     INTERFACE
-       INTEGER FUNCTION H5DSget_label_c(did, idx, label, size)
-
-         USE h5global
+       INTEGER FUNCTION H5DSget_label_c(did, idx, label, size) &
+            BIND(C,NAME='h5dsget_label_c')
+         IMPORT :: C_CHAR
+         IMPORT :: HID_T, SIZE_T
          IMPLICIT NONE
-         !DEC$IF DEFINED(HDF5F90_WINDOWS)
-         !DEC$ATTRIBUTES C,reference,decorate,alias:'H5DSGET_LABEL_C'::h5dsget_label_c
-         !DEC$ENDIF
-         !DEC$ATTRIBUTES reference :: label
          INTEGER(hid_t),   INTENT(in)    :: did        ! The dataget
          INTEGER       ,   INTENT(in)    :: idx        ! The dimension
-         CHARACTER(LEN=*), INTENT(in)    :: label      ! The label
+         CHARACTER(KIND=C_CHAR), DIMENSION(*), INTENT(in) :: label      ! The label
          INTEGER(SIZE_T),  INTENT(inout) :: size       ! Length of label
        END FUNCTION H5DSget_label_c
     END INTERFACE
@@ -466,16 +443,13 @@ CONTAINS
     INTEGER :: errcode                      ! Error code
 
     INTERFACE
-       INTEGER FUNCTION H5DSget_scale_name_c(did, name, size)
-
-         USE h5global
+       INTEGER FUNCTION H5DSget_scale_name_c(did, name, size) &
+            bind(c,name='h5dsget_scale_name_c')
+         IMPORT :: C_CHAR
+         IMPORT :: HID_T, SIZE_T
          IMPLICIT NONE
-         !DEC$IF DEFINED(HDF5F90_WINDOWS)
-         !DEC$ATTRIBUTES C,reference,decorate,alias:'H5DSGET_SCALE_NAME_C'::h5dsget_scale_name_c
-         !DEC$ENDIF
-         !DEC$ATTRIBUTES reference :: name
          INTEGER(hid_t),   INTENT(in)    :: did       ! The dataget
-         CHARACTER(LEN=*), INTENT(out)   :: name      ! The name
+         CHARACTER(KIND=C_CHAR), DIMENSION(*), INTENT(out) :: name      ! The name
          INTEGER(SIZE_T),  INTENT(inout) :: size      ! Length of name
        END FUNCTION H5DSget_scale_name_c
     END INTERFACE
@@ -518,13 +492,10 @@ CONTAINS
     INTEGER                     :: c_idx
     
     INTERFACE
-       INTEGER FUNCTION  H5DSget_num_scales_c(did, idx, num_scales)
-         
-         USE h5global
+       INTEGER FUNCTION H5DSget_num_scales_c(did, idx, num_scales) &
+            BIND(C,NAME='h5dsget_num_scales_c')
+         IMPORT :: HID_T
          IMPLICIT NONE
-         !DEC$IF DEFINED(HDF5F90_WINDOWS)
-         !DEC$ATTRIBUTES C,reference,decorate,alias:'H5DSGET_NUM_SCALES_C':: h5dsget_num_scales_c
-         !DEC$ENDIF
          INTEGER(hid_t), INTENT(in)  :: did        ! the dataset
          INTEGER       , INTENT(in)  :: idx        ! the dimension of did to query
          INTEGER       , INTENT(out) :: num_scales ! the number of Dimension Scales associated with did

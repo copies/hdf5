@@ -5,12 +5,10 @@
 #
 # This file is part of HDF5.  The full HDF5 copyright notice, including
 # terms governing use, modification, and redistribution, is contained in
-# the files COPYING and Copyright.html.  COPYING can be found at the root
-# of the source code distribution tree; Copyright.html can be found at the
-# root level of an installed copy of the electronic HDF5 document set and
-# is linked from the top-level documents page.  It can also be found at
-# http://hdfgroup.org/HDF5/doc/Copyright.html.  If you do not have
-# access to either file, you may request a copy from help@hdfgroup.org.
+# the COPYING file, which can be found at the root of the source code
+# distribution tree, or in https://support.hdfgroup.org/ftp/HDF5/releases.
+# If you do not have access to either file, you may request a copy from
+# help@hdfgroup.org.
 
 #
 #  This file:  run-c-ex.sh
@@ -33,7 +31,7 @@ EXIT_FAILURE=1
  
 # Where the tool is installed.
 # default is relative path to installed location of the tools 
-prefix="${prefix:-../../../}"
+prefix="${prefix:-@prefix@}"
 PARALLEL=@PARALLEL@             # Am I in parallel mode?
 AR="@AR@"
 RANLIB="@RANLIB@"
@@ -125,7 +123,23 @@ then
         RunTest h5_elink_unix2win &&\
         rm h5_elink_unix2win &&\
         RunTest h5_shared_mesg &&\
-        rm h5_shared_mesg); then
+        rm h5_shared_mesg &&\
+        RunTest h5_vds-eiger &&\
+        rm h5_vds-eiger &&\
+        RunTest h5_vds-exclim &&\
+        rm h5_vds-exclim &&\
+        RunTest h5_vds-exc &&\
+        rm h5_vds-exc &&\
+        RunTest h5_vds-simpleIO &&\
+        rm h5_vds-simpleIO &&\
+        RunTest h5_vds-percival &&\
+        rm h5_vds-percival &&\
+        RunTest h5_vds-percival-unlim &&\
+        rm h5_vds-percival-unlim &&\
+        RunTest h5_vds-percival-unlim-maxmin&&\
+        rm h5_vds-percival-unlim-maxmin &&\
+        RunTest h5_vds &&\
+        rm h5_vds); then
         EXIT_VALUE=${EXIT_SUCCESS}
     else
         EXIT_VALUE=${EXIT_FAILURE}

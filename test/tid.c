@@ -5,12 +5,10 @@
  *                                                                           *
  * This file is part of HDF5.  The full HDF5 copyright notice, including     *
  * terms governing use, modification, and redistribution, is contained in    *
- * the files COPYING and Copyright.html.  COPYING can be found at the root   *
- * of the source code distribution tree; Copyright.html can be found at the  *
- * root level of an installed copy of the electronic HDF5 document set and   *
- * is linked from the top-level documents page.  It can also be found at     *
- * http://hdfgroup.org/HDF5/doc/Copyright.html.  If you do not have          *
- * access to either file, you may request a copy from help@hdfgroup.org.     *
+ * the COPYING file, which can be found at the root of the source code       *
+ * distribution tree, or in https://support.hdfgroup.org/ftp/HDF5/releases.  *
+ * If you do not have access to either file, you may request a copy from     *
+ * help@hdfgroup.org.                                                        *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 /* Test user-created identifiers (hid_t's) and identifier types. */
@@ -19,7 +17,7 @@
 #include "hdf5.h"
 
 	/* Include H5Ipkg.h to calculate max number of groups */
-#define H5I_PACKAGE
+#define H5I_FRIEND		/*suppress error about including H5Ipkg	  */
 #include "H5Ipkg.h"
 
 	/* Test basic functionality of registering and deleting types and IDs */
@@ -336,8 +334,8 @@ out:
 static int test_is_valid(void)
 {
     hid_t   dtype;      /* datatype id */
-    int     nmembs1;    /* number of type memnbers */
-    int     nmembs2;
+    int64_t nmembs1;    /* number of type memnbers */
+    int64_t nmembs2;
     htri_t  tri_ret;    /* htri_t return value */
     herr_t  ret;        /* return value */
 
@@ -531,136 +529,6 @@ out:
 			H5Idestroy_type((H5I_type_t) i);
 	H5E_END_TRY
 	return -1;
-}
-
-/* 'Fake' free routine for ID wrapping test */
-static herr_t fake_free(void *obj)
-{
-    /* Shut compilers up */
-    obj = obj;
-
-    return(0);
-}
-
-	/* Test boundary cases with lots of IDs */
-
-/* Type IDs range from 0 to ID_MASK before wrapping around.  The code will assign */
-/* IDs in sequential order until ID_MASK IDs have been given out. */
-/* This test will allocate IDs up to ID_MASK, ensure that IDs wrap around */
-/* to low values successfully, then ensure that deleting types frees up their IDs. */
-/* NOTE: this test depends on the implementation of IDs, so may break */
-/*		if the implementation changes. */
-static int test_id_wrap(void)
-{
-    H5I_type_t testType;    /* ID class for testing */
-    hid_t *id_array;    /* Array of IDs allocated */
-    hid_t test_id;      /* Test ID */
-    void *obj;          /* Object pointer returned for ID */
-    unsigned u;         /* Local index variable */
-    hsize_t nids;       /* Number of IDs registered for type */
-    herr_t status;      /* Status from routine */
-
-    /* Allocate array for storing IDs */
-    id_array = (hid_t *)HDmalloc((ID_MASK + 1) * sizeof(hid_t));
-    CHECK(id_array, NULL, "HDmalloc");
-
-    /* Register type for testing */
-    testType = H5Iregister_type((size_t)8, 0, (H5I_free_t)fake_free);
-    CHECK(testType, H5I_BADID, "H5Iregister_type");
-    if(testType == H5I_BADID)
-        goto out;
-
-    /* Get IDs, up to the maximum possible */
-    for(u = 0; u <= ID_MASK; u++) {
-        id_array[u] = H5Iregister(testType, &id_array[u]);
-        CHECK(id_array[u], FAIL, "H5Iregister");
-        if(id_array[u] < 0)
-            goto out;
-        if(u > 0) {
-            /* IDs should be returned in increasing order */
-            /* (Since application-registered IDs don't reuse ID values) */
-            if(id_array[u] < id_array[u - 1])
-                goto out;
-
-            /* Release the previous ID in the array */
-            obj = H5Iremove_verify(id_array[u - 1], testType);
-            CHECK(obj, NULL, "H5Iremove_verify");
-            if(NULL == obj)
-                goto out;
-            VERIFY(obj, &id_array[u - 1], "H5Iremove_verify");
-            if(&id_array[u - 1] != obj)
-                goto out;
-        } /* end if */
-
-        /* Verify number of registered IDs */
-        /* (Should stay at 1) */
-        status = H5Inmembers(testType, &nids);
-        CHECK(status, FAIL, "H5Inmembers");
-        if(status < 0)
-            goto out;
-        VERIFY(nids, 1, "H5Inmembers");
-        if(nids != 1)
-            goto out;
-    } /* end for */
-
-    /* Register another object, will wraparound */
-    test_id = H5Iregister(testType, &id_array[0]);
-    CHECK(test_id, FAIL, "H5Iregister");
-    if(test_id < 0)
-        goto out;
-    VERIFY(test_id, id_array[0], "H5Iregister");
-    if(id_array[0] != test_id)
-        goto out;
-
-    /* Verify number of registered IDs */
-    /* (Should be 2 now) */
-    status = H5Inmembers(testType, &nids);
-    CHECK(status, FAIL, "H5Inmembers");
-    if(status < 0)
-        goto out;
-    VERIFY(nids, 2, "H5Inmembers");
-    if(nids != 2)
-        goto out;
-
-    /* Release the first ID in the array */
-    obj = H5Iremove_verify(id_array[0], testType);
-    CHECK(obj, NULL, "H5Iremove_verify");
-    if(NULL == obj)
-        goto out;
-    VERIFY(obj, &id_array[0], "H5Iremove_verify");
-    if(&id_array[0] != obj)
-        goto out;
-
-    /* Release the last ID in the array */
-    obj = H5Iremove_verify(id_array[ID_MASK], testType);
-    CHECK(obj, NULL, "H5Iremove_verify");
-    if(NULL == obj)
-        goto out;
-    VERIFY(obj, &id_array[ID_MASK], "H5Iremove_verify");
-    if(&id_array[ID_MASK] != obj)
-        goto out;
-
-    /* Verify number of registered IDs */
-    /* (Should be 0 now) */
-    status = H5Inmembers(testType, &nids);
-    CHECK(status, FAIL, "H5Inmembers");
-    if(status < 0)
-        goto out;
-    VERIFY(nids, 0, "H5Inmembers");
-    if(nids != 0)
-        goto out;
-
-    status = H5Idestroy_type(testType);
-    CHECK(status, FAIL, "H5Idestroy_type");
-    if(status < 0)
-        goto out;
-
-    HDfree(id_array);
-
-    return(0);
-
-out:
-    return(-1);
 }
 
     /* Test removing ids in callback for H5Iclear_type */
@@ -868,6 +736,6 @@ void test_ids(void)
 	if (test_is_valid() < 0) TestErrPrintf("H5Iis_valid test failed\n");
 	if (test_get_type() < 0) TestErrPrintf("H5Iget_type test failed\n");
 	if (test_id_type_list() < 0) TestErrPrintf("ID type list test failed\n");
-	if (test_id_wrap() < 0) TestErrPrintf("ID wraparound test failed\n");
 	if (test_remove_clear_type() < 0) TestErrPrintf("ID remove during H5Iclear_type test failed\n");
+
 }

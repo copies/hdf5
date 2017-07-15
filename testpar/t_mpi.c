@@ -5,12 +5,10 @@
  *                                                                           *
  * This file is part of HDF5.  The full HDF5 copyright notice, including     *
  * terms governing use, modification, and redistribution, is contained in    *
- * the files COPYING and Copyright.html.  COPYING can be found at the root   *
- * of the source code distribution tree; Copyright.html can be found at the  *
- * root level of an installed copy of the electronic HDF5 document set and   *
- * is linked from the top-level documents page.  It can also be found at     *
- * http://hdfgroup.org/HDF5/doc/Copyright.html.  If you do not have          *
- * access to either file, you may request a copy from help@hdfgroup.org.     *
+ * the COPYING file, which can be found at the root of the source code       *
+ * distribution tree, or in https://support.hdfgroup.org/ftp/HDF5/releases.  *
+ * If you do not have access to either file, you may request a copy from     *
+ * help@hdfgroup.org.                                                        *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 /*
@@ -281,7 +279,7 @@ test_mpio_gb_file(char *filename)
 	printf("Skipped GB file range test "
 		"because MPI_Offset cannot support it\n");
     }else{
-	buf = HDmalloc(MB);
+	buf = (char *)HDmalloc(MB);
 	VRFY((buf!=NULL), "malloc succeed");
 
 	/* open a new file. Remove it first in case it exists. */
@@ -626,7 +624,7 @@ Test Whether the Displacement of MPI derived datatype
 and this platform.
 
 1. Details for the test:
-1) Create two derived datatypes with MPI_Type_hindexed:
+1) Create two derived datatypes with MPI_Type_create_hindexed:
         datatype1:
 	count = 1, blocklens = 1, offsets = 0,
 	base type = MPI_BYTE(essentially a char)
@@ -635,7 +633,7 @@ and this platform.
 	base type = MPI_BYTE
 
 2) Using these two derived datatypes,
-   Build another derived datatype with MPI_Type_struct:
+   Build another derived datatype with MPI_Type_create_struct:
         advtype: derived from datatype1 and datatype2
         advtype:
 	count = 2, blocklens[0] = 1, blocklens[1]=1,
@@ -678,10 +676,9 @@ static int test_mpio_derived_dtype(char *filename) {
     int  mpi_err_strlen;
     int  mpi_err;
     int  i;
-    int  nerrors = 0;		/* number of errors */
     MPI_Datatype  etype,filetype;
     MPI_Datatype  adv_filetype,bas_filetype[2];
-    MPI_Datatype  etypenew, filetypenew;
+    MPI_Datatype  filetypenew;
     MPI_Offset    disp;
     MPI_Status    Status;
     MPI_Aint      adv_disp[2];
@@ -717,7 +714,7 @@ static int test_mpio_derived_dtype(char *filename) {
     blocklens[0] = 1;
     offsets[0]   = 0;
 
-    if((mpi_err= MPI_Type_hindexed(count,blocklens,offsets,MPI_BYTE,&filetype))
+    if((mpi_err= MPI_Type_create_hindexed(count,blocklens,offsets,MPI_BYTE,&filetype))
        != MPI_SUCCESS){
       	MPI_Error_string(mpi_err, mpi_err_str, &mpi_err_strlen);
 	printf("MPI_Type_contiguous failed (%s)\n", mpi_err_str);
@@ -733,7 +730,7 @@ static int test_mpio_derived_dtype(char *filename) {
     count = 1;
     blocklens[0]=1;
     offsets[0] = 1;
-    if((mpi_err= MPI_Type_hindexed(count,blocklens,offsets,MPI_BYTE,&filetypenew))
+    if((mpi_err= MPI_Type_create_hindexed(count,blocklens,offsets,MPI_BYTE,&filetypenew))
        != MPI_SUCCESS){
       	MPI_Error_string(mpi_err, mpi_err_str, &mpi_err_strlen);
 	printf("MPI_Type_contiguous failed (%s)\n", mpi_err_str);
@@ -754,10 +751,10 @@ static int test_mpio_derived_dtype(char *filename) {
     bas_filetype[0]  = filetype;
     bas_filetype[1]  = filetypenew;
 
-    if((mpi_err= MPI_Type_struct(outcount,adv_blocklens,adv_disp,bas_filetype,&adv_filetype))
+    if((mpi_err= MPI_Type_create_struct(outcount,adv_blocklens,adv_disp,bas_filetype,&adv_filetype))
        != MPI_SUCCESS){
       	MPI_Error_string(mpi_err, mpi_err_str, &mpi_err_strlen);
-	printf("MPI_Type_struct failed (%s)\n", mpi_err_str);
+	printf("MPI_Type_create_struct failed (%s)\n", mpi_err_str);
 	return 1;
     }
     if((mpi_err=MPI_Type_commit(&adv_filetype))!=MPI_SUCCESS){
@@ -844,7 +841,7 @@ has no contribution to IO. To properly test this case, at least FOUR
 processes are needed.
 
 1. Details for the test:
-1) Create one derived datatype with MPI_Type_hindexed:
+1) Create one derived datatype with MPI_Type_create_hindexed:
 
 2) Choosing at least two processes to contribute none for IO with
    the buf size inside MPI_Write_at_all to 0.
@@ -900,7 +897,7 @@ test_mpio_special_collective(char *filename)
     offsets[1] = (mpi_size+mpi_rank)*count;
 
     if(count !=0) {
-        if((mpi_err = MPI_Type_hindexed(2,
+        if((mpi_err = MPI_Type_create_hindexed(2,
                                         blocklens,
                                         offsets,
                                         etype,
@@ -916,7 +913,7 @@ test_mpio_special_collective(char *filename)
             return 1;
         } /* end if */
 
-        if((mpi_err = MPI_Type_hindexed(2,
+        if((mpi_err = MPI_Type_create_hindexed(2,
                                         blocklens,
                                         offsets,
                                         etype,
@@ -1100,7 +1097,7 @@ main(int argc, char **argv)
      * calls.  By then, MPI calls may not work.
      */
     if (H5dont_atexit() < 0){
-	printf("Failed to turn off atexit processing. Continue.\n", mpi_rank);
+	printf("Failed to turn off atexit processing. Continue.\n");
     };
     H5open();
     if (parse_options(argc, argv) != 0){
@@ -1236,7 +1233,7 @@ finish:
     /* turn off alarm */
     ALARM_OFF;
 
-    h5_cleanup(FILENAME, fapl);
+    h5_clean_files(FILENAME, fapl);
     H5close();
 
     /* MPI_Finalize must be called AFTER H5close which may use MPI calls */
